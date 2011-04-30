@@ -267,6 +267,72 @@ class s3dFile():
             print("B3D file not found")
             exit()
 
+        self.b3dfile_type = ""
+        for x in range(5):
+            self.b3dfile_type += bytes.decode(struct.unpack("c", f.read(1))[0])
+
+        self.b3dBoneId = self.readFromFile("i", 1)[0]
+        self.b3dBoneCount = self.readFromFile("i", 1)[0]
+        print(self.b3dfile_type)
+        print(self.b3dBoneId)
+        print(self.b3dBoneCount)
+
+        for b in range(self.b3dBoneCount):
+
+            boneName = self.readFromFile("c")
+
+            ## bone position
+            bonePositionX = self.readFromFile("f", 1)[0]
+            bonePositionY = self.readFromFile("f", 1)[0]
+            bonePositionZ = self.readFromFile("f", 1)[0]
+
+            ## bone rotiation
+            boneRotationW = self.readFromFile("f", 1)[0]
+            boneRotationX = self.readFromFile("f", 1)[0]
+            boneRotationY = self.readFromFile("f", 1)[0]
+            boneRotationZ = self.readFromFile("f", 1)[0]
+
+            ## bone original position
+            boneOriginalPositionX = self.readFromFile("f", 1)[0]
+            boneOriginalPositionY = self.readFromFile("f", 1)[0]
+            boneOriginalPositionZ = self.readFromFile("f", 1)[0]
+
+            ## bone original rotiation
+            boneOriginalRotationW = self.readFromFile("f", 1)[0]
+            boneOriginalRotationX = self.readFromFile("f", 1)[0]
+            boneOriginalRotationY = self.readFromFile("f", 1)[0]
+            boneOriginalRotationZ = self.readFromFile("f", 1)[0]
+
+            boneMaxAngles = self.readFromFile("f", 6)
+
+            boneLength = self.readFromFile("f", 1)
+            boneThickness = self.readFromFile("f", 1)
+
+            boneParentId = self.readFromFile("i", 1)
+
+        self.b3dBoneHelperCount = self.readFromFile("i", 1)[0]
+
+        for h in range(self.b3dBoneHelperCount):
+
+            helperName = self.readFromFile("c")
+            helperParent = self.readFromFile("c")
+
+            ## helper position
+            helperPositionX = self.readFromFile("f", 1)[0]
+            helperPositionY = self.readFromFile("f", 1)[0]
+            helperPositionZ = self.readFromFile("f", 1)[0]
+
+            helperOther1 = self.readFromFile("f", 3)
+            helperOther2 = self.readFromFile("f", 3)
+
+            helperEndTime = self.readFromFile("i", 1)[0]
+            helperFoo = self.readFromFile("B", 2)
+            helperFoo = self.readFromFile("B", 2)
+            helperFoo = self.readFromFile("B", 2)
+
+        ## Close the B3D file
+        f.close()
+
 ## Blender script/addon stuff
 from bpy.props import StringProperty
 from io_utils import ImportHelper
