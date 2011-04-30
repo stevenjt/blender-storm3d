@@ -76,7 +76,7 @@ class s3dFile():
         try:
             f = open(filename, "rb")
         except:
-            print("File not found")
+            print("S3D file not found")
             exit()
 
         if os.name == "posix":
@@ -87,6 +87,7 @@ class s3dFile():
            slash = "\\"
 
         current_dir = filename.split(slash)[:-1]
+        ModelFileName = filename.split(slash)[-1].split(".")[0]
         current_dir = slash.join(current_dir) + slash
 
         self.file_type = ""
@@ -229,7 +230,8 @@ class s3dFile():
                 vertexTextureCoords2 = self.readFromFile("f", 2)
 
                 ## store vertex data
-                vertex.append(vertexPosition)
+                ## y and z are swapped due to differences between which axis is 'up' between Blender and Storm3D
+                vertex.append((vertexPosition[0], vertexPosition[2], vertexPosition[1]))
 
                 ## store texture coord data
                 uvTex.append(vertexTextureCoords)
@@ -256,6 +258,14 @@ class s3dFile():
 
         ## Close the S3D file
         f.close()
+
+        # Open the B3D file
+        try:
+            b3dpath = current_dir + ModelFileName + ".b3d"
+            f = open(b3dpath, "rb")
+        except:
+            print("B3D file not found")
+            exit()
 
 ## Blender script/addon stuff
 from bpy.props import StringProperty
