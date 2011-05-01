@@ -54,7 +54,7 @@ class s3dFile():
         elif type == "h":
             return struct.unpack(number * "h", f.read(number * 2))
         elif type == "L":
-            return struct.unpack(number * "L", f.read(number * 4))
+            return struct.unpack(number * ">L", f.read(number * 4))
         elif type == "f":
             return struct.unpack(number * "f", f.read(number * 4))
         elif type == "i":
@@ -116,7 +116,6 @@ class s3dFile():
         self.num_hel = self.readFromFile("H", 1)[0]
 
         self.boneid = self.readFromFile("i", 1)[0]
-        print("s3d bone id: " + str(self.boneid))
 
         self.textures = []
         self.materials = []
@@ -141,7 +140,6 @@ class s3dFile():
 
             ## read material name
             materialName = self.readFromFile("c")
-            print(materialName)
 
             ## get the details of the material texture
             materialTextureBase = self.readFromFile("h", 1)[0]
@@ -149,7 +147,6 @@ class s3dFile():
             materialTextureBump = self.readFromFile("h", 1)[0]
             materialTextureReflection = self.readFromFile("h", 1)[0]
 
-            print(self.version)
             if self.version >= 14:
                 materialTextureDistortion = self.readFromFile("h", 1)[0]
 
@@ -173,11 +170,9 @@ class s3dFile():
                 materialScrollSpeed = self.readFromFile("f", 2)
                 materialScrollStart = self.readFromFile("B", 1)
 
-            print(materialTextureBase2)
             if materialTextureBase2 >= 0:
                 tlayer = self.readFromFile("f", 2)
             
-            print(materialTextureReflection)
             if materialTextureReflection >= 0:
                 tlayer = self.readFromFile("f", 2)
 
@@ -196,12 +191,10 @@ class s3dFile():
             ## append material name to the materials list
             self.materials.append(mat)
 
-        print(self.getObjNum())
         ## for all the objects in the file
         for o in range(self.getObjNum()):
 
             objectName = self.readFromFile("c")
-            print(objectName)
             objectParent = self.readFromFile("c")
 
             material_index = self.readFromFile("H", 1)[0]
@@ -341,7 +334,6 @@ class s3dFile():
 
             self.b3dBoneId = self.readFromFile("i", 1)[0]
             self.b3dBoneCount = self.readFromFile("i", 1)[0]
-            print("b3d bone id: " + str(self.b3dBoneCount))
 
             for b in range(self.b3dBoneCount):
 
