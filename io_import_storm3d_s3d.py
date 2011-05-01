@@ -79,7 +79,7 @@ class s3dFile():
     def getHelNum(self):
         return self.num_hel
 
-    def open(self, filename):
+    def open(self, filename, getB3D):
         global f
 
         ####################
@@ -318,14 +318,15 @@ class s3dFile():
         ## B3D file
         ####################
 
-        ## Open the B3D file
-        try:
-            b3dpath = current_dir + ModelFileName + ".b3d"
-            f = open(b3dpath, "rb")
-            b3dLoaded = True
-        except:
-            print("B3D file not found")
-            b3dLoaded = False
+        ## Open the B3D file if it is to be read
+        b3dLoaded = False
+        if getB3D == True:
+            try:
+                b3dpath = current_dir + ModelFileName + ".b3d"
+                f = open(b3dpath, "rb")
+                b3dLoaded = True
+            except:
+                print("B3D file not found")
 
         if b3dLoaded == True:
             self.b3dfile_type = ""
@@ -394,7 +395,7 @@ class s3dFile():
             f.close()
 
 ## Blender script/addon stuff
-from bpy.props import StringProperty
+from bpy.props import StringProperty, BoolProperty
 from io_utils import ImportHelper
 
 class ImportS3D(bpy.types.Operator, ImportHelper):
@@ -404,11 +405,13 @@ class ImportS3D(bpy.types.Operator, ImportHelper):
     bl_region_type = "WINDOW"
 
     filename_ext = ".s3d"
-    filter_glob = StringProperty(default="*.s3d", options={'HIDDEN'})
+    filter_glob = StringProperty(default = "*.s3d", options = {'HIDDEN'})
+
+    getB3D = BoolProperty(name = "Import B3D (Bones)", description = "Import data from the B3D file if present", default = True)
 
     def execute(self, context):
         s3d = s3dFile()
-        s3d.open(self.filepath)
+        s3d.open(self.filepath, self.getB3D)
         return {'FINISHED'}
 
 def menu_func(self, context):
