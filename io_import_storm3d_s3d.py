@@ -51,6 +51,8 @@ class s3dFile():
             return struct.unpack(number * "B", f.read(number))[0]
         elif type == "H":
             return struct.unpack(number * "H", f.read(number * 2))
+        elif type == "h":
+            return struct.unpack(number * "h", f.read(number * 2))
         elif type == "L":
             return struct.unpack(number * "L", f.read(number * 4))
         elif type == "f":
@@ -89,7 +91,6 @@ class s3dFile():
             f = open(filename, "rb")
         except:
             print("S3D file not found")
-            exit()
 
         if os.name == "posix":
             ## POSIX, use forward slash
@@ -107,13 +108,15 @@ class s3dFile():
             self.file_type += bytes.decode(struct.unpack("c", f.read(1))[0])
 
         self.version = self.readFromFile("i", 1)[0]
+
         self.num_tex = self.readFromFile("H", 1)[0]
         self.num_mat = self.readFromFile("H", 1)[0]
         self.num_obj = self.readFromFile("H", 1)[0]
         self.num_lig = self.readFromFile("H", 1)[0]
         self.num_hel = self.readFromFile("H", 1)[0]
-        self.bone = self.readFromFile("H", 1)[0]
-        self.bone = self.readFromFile("H", 1)[0]
+
+        self.boneid = self.readFromFile("i", 1)[0]
+        print("s3d bone id: " + str(self.boneid))
 
         self.textures = []
         self.materials = []
@@ -122,12 +125,12 @@ class s3dFile():
         for t in range(self.getTexNum()):
 
             ## read texture filename
-            string = self.readFromFile("c")
+            textureName = self.readFromFile("c")
 
             ## put the texture into the textures list
-            self.textures.append(string)
+            self.textures.append(textureName)
             
-            texid = self.readFromFile("i", 1)
+            texId = self.readFromFile("L", 1)
             texStartFrame = self.readFromFile("H", 1)[0]
             texFrameChangeTime = self.readFromFile("H", 1)[0]
             
@@ -138,16 +141,17 @@ class s3dFile():
 
             ## read material name
             materialName = self.readFromFile("c")
+            print(materialName)
 
             ## get the details of the material texture
-            materialTextureBase = self.readFromFile("H", 1)[0]
-            materialTextureBase2 = self.readFromFile("H", 1)[0]
-            materialTextureBump = self.readFromFile("H", 1)[0]
-            materialTextureReflection = self.readFromFile("H", 1)[0]
+            materialTextureBase = self.readFromFile("h", 1)[0]
+            materialTextureBase2 = self.readFromFile("h", 1)[0]
+            materialTextureBump = self.readFromFile("h", 1)[0]
+            materialTextureReflection = self.readFromFile("h", 1)[0]
 
             print(self.version)
             if self.version >= 14:
-                materialTextureDistortion = self.readFromFile("H", 1)[0]
+                materialTextureDistortion = self.readFromFile("h", 1)[0]
 
             materialColour = self.readFromFile("f", 3)
             materialSelfIllum = self.readFromFile("f", 3)
@@ -161,14 +165,20 @@ class s3dFile():
             materialAlphablendType = self.readFromFile("i", 1)
 
             materialTransparency = self.readFromFile("f", 1)
-            materialGlow = self.readFromFile("f", 1)
 
-            materialScrollSpeed = self.readFromFile("f", 2)
-            materialScrollStart = self.readFromFile("B", 1)
+            if self.version >= 12:
+                materialGlow = self.readFromFile("f", 1)
+
+            if self.version >= 13:
+                materialScrollSpeed = self.readFromFile("f", 2)
+                materialScrollStart = self.readFromFile("B", 1)
+
+            print(materialTextureBase2)
+            if materialTextureBase2 >= 0:
+                tlayer = self.readFromFile("f", 2)
             
-            ## this isn't quite right
-            if materialTextureReflection != 65535:
-                pass
+            print(materialTextureReflection)
+            if materialTextureReflection >= 0:
                 tlayer = self.readFromFile("f", 2)
 
             mat = bpy.data.materials.new(materialName)
@@ -186,10 +196,12 @@ class s3dFile():
             ## append material name to the materials list
             self.materials.append(mat)
 
+        print(self.getObjNum())
         ## for all the objects in the file
         for o in range(self.getObjNum()):
 
             objectName = self.readFromFile("c")
+            print(objectName)
             objectParent = self.readFromFile("c")
 
             material_index = self.readFromFile("H", 1)[0]
@@ -316,75 +328,77 @@ class s3dFile():
         try:
             b3dpath = current_dir + ModelFileName + ".b3d"
             f = open(b3dpath, "rb")
+            b3dLoaded = True
         except:
             print("B3D file not found")
-            exit()
+            b3dLoaded = False
 
-        self.b3dfile_type = ""
-        for x in range(5):
-            self.b3dfile_type += bytes.decode(struct.unpack("c", f.read(1))[0])
+        if b3dLoaded == True:
+            self.b3dfile_type = ""
+            for x in range(5):
+                self.b3dfile_type += bytes.decode(struct.unpack("c", f.read(1))[0])
 
-        self.b3dBoneId = self.readFromFile("i", 1)[0]
-        self.b3dBoneCount = self.readFromFile("i", 1)[0]
-        print(self.b3dfile_type)
-        print(self.b3dBoneId)
-        print(self.b3dBoneCount)
+            self.b3dBoneId = self.readFromFile("i", 1)[0]
+            self.b3dBoneCount = self.readFromFile("i", 1)[0]
+            print("b3d bone id: " + str(self.b3dBoneCount))
 
-        for b in range(self.b3dBoneCount):
+            for b in range(self.b3dBoneCount):
 
-            boneName = self.readFromFile("c")
+                boneName = self.readFromFile("c")
 
-            ## bone position
-            bonePositionX = self.readFromFile("f", 1)[0]
-            bonePositionY = self.readFromFile("f", 1)[0]
-            bonePositionZ = self.readFromFile("f", 1)[0]
+                ## bone position
+                bonePositionX = self.readFromFile("f", 1)[0]
+                bonePositionY = self.readFromFile("f", 1)[0]
+                bonePositionZ = self.readFromFile("f", 1)[0]
 
-            ## bone rotiation
-            boneRotationW = self.readFromFile("f", 1)[0]
-            boneRotationX = self.readFromFile("f", 1)[0]
-            boneRotationY = self.readFromFile("f", 1)[0]
-            boneRotationZ = self.readFromFile("f", 1)[0]
+                ## bone rotiation
+                boneRotationW = self.readFromFile("f", 1)[0]
+                boneRotationX = self.readFromFile("f", 1)[0]
+                boneRotationY = self.readFromFile("f", 1)[0]
+                boneRotationZ = self.readFromFile("f", 1)[0]
 
-            ## bone original position
-            boneOriginalPositionX = self.readFromFile("f", 1)[0]
-            boneOriginalPositionY = self.readFromFile("f", 1)[0]
-            boneOriginalPositionZ = self.readFromFile("f", 1)[0]
+                ## bone original position
+                boneOriginalPositionX = self.readFromFile("f", 1)[0]
+                boneOriginalPositionY = self.readFromFile("f", 1)[0]
+                boneOriginalPositionZ = self.readFromFile("f", 1)[0]
 
-            ## bone original rotiation
-            boneOriginalRotationW = self.readFromFile("f", 1)[0]
-            boneOriginalRotationX = self.readFromFile("f", 1)[0]
-            boneOriginalRotationY = self.readFromFile("f", 1)[0]
-            boneOriginalRotationZ = self.readFromFile("f", 1)[0]
+                ## bone original rotiation
+                boneOriginalRotationW = self.readFromFile("f", 1)[0]
+                boneOriginalRotationX = self.readFromFile("f", 1)[0]
+                boneOriginalRotationY = self.readFromFile("f", 1)[0]
+                boneOriginalRotationZ = self.readFromFile("f", 1)[0]
 
-            boneMaxAngles = self.readFromFile("f", 6)
+                boneMaxAngles = self.readFromFile("f", 6)
 
-            boneLength = self.readFromFile("f", 1)
-            boneThickness = self.readFromFile("f", 1)
+                boneLength = self.readFromFile("f", 1)
+                boneThickness = self.readFromFile("f", 1)
 
-            boneParentId = self.readFromFile("i", 1)
+                boneParentId = self.readFromFile("i", 1)
 
-        self.b3dBoneHelperCount = self.readFromFile("i", 1)[0]
+            self.b3dBoneHelperCount = self.readFromFile("i", 1)[0]
 
-        for h in range(self.b3dBoneHelperCount):
+            for h in range(self.b3dBoneHelperCount):
 
-            helperName = self.readFromFile("c")
-            helperParent = self.readFromFile("c")
+                helperName = self.readFromFile("c")
+                helperParent = self.readFromFile("c")
 
-            ## helper position
-            helperPositionX = self.readFromFile("f", 1)[0]
-            helperPositionY = self.readFromFile("f", 1)[0]
-            helperPositionZ = self.readFromFile("f", 1)[0]
+                helperType = self.readFromFile("i", 1)
 
-            helperOther1 = self.readFromFile("f", 3)
-            helperOther2 = self.readFromFile("f", 3)
+                ## helper position
+                helperPositionX = self.readFromFile("f", 1)[0]
+                helperPositionY = self.readFromFile("f", 1)[0]
+                helperPositionZ = self.readFromFile("f", 1)[0]
 
-            helperEndTime = self.readFromFile("i", 1)[0]
-            helperFoo = self.readFromFile("B", 2)
-            helperFoo = self.readFromFile("B", 2)
-            helperFoo = self.readFromFile("B", 2)
+                helperOther1 = self.readFromFile("f", 3)
+                helperOther2 = self.readFromFile("f", 3)
 
-        ## Close the B3D file
-        f.close()
+                helperEndTime = self.readFromFile("i", 1)[0]
+                helperFoo = self.readFromFile("B", 2)
+                helperFoo = self.readFromFile("B", 2)
+                helperFoo = self.readFromFile("B", 2)
+
+            ## Close the B3D file
+            f.close()
 
 ## Blender script/addon stuff
 from bpy.props import StringProperty
