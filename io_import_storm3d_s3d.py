@@ -229,7 +229,7 @@ class s3dFile():
             objectVertexAmount = self.readFromFile("H", 1)[0]
             objectFaceAmount = self.readFromFile("H", 1)[0]
             
-            ## lod and weight stuff, not yet used
+            ## lod and weights
             objectLOD = self.readFromFile("B", 1)
             objectWeights = self.readFromFile("B", 1)
 
@@ -264,12 +264,13 @@ class s3dFile():
             for n in range(objectFaceAmount):
                 faces.append(self.readFromFile("H", 3))
 
-            ## For all the weights in the object
-            for n in range(objectVertexAmount):
-                bone1 = self.readFromFile("i", 1)[0]
-                bone2 = self.readFromFile("i", 1)[0]
-                weight1 = self.readFromFile("B", 1)
-                weight2 = self.readFromFile("B", 1)
+            if objectWeights == True:
+                ## For all the weights in the object
+                for n in range(objectVertexAmount):
+                    bone1 = self.readFromFile("i", 1)[0]
+                    bone2 = self.readFromFile("i", 1)[0]
+                    weight1 = self.readFromFile("B", 1)
+                    weight2 = self.readFromFile("B", 1)
 
             ## Send data to the mesh in Blender
             mesh.from_pydata(vertex, [], faces)
