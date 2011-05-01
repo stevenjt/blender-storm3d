@@ -71,8 +71,20 @@ class s3dFile():
     def getObjNum(self):
         return self.num_obj
 
+    def getLigNum(self):
+        return self.num_lig
+
+    def getHelNum(self):
+        return self.num_hel
+
     def open(self, filename):
         global f
+
+        ####################
+        ## S3D file
+        ####################
+
+        ## Open the S3D file
         try:
             f = open(filename, "rb")
         except:
@@ -247,8 +259,6 @@ class s3dFile():
                 weight1 = self.readFromFile("B", 1)
                 weight2 = self.readFromFile("B", 1)
 
-            ## there can be other stuff here for lights and helpers
-
             ## Send data to the mesh in Blender
             mesh.from_pydata(vertex, [], faces)
             mesh.update()
@@ -256,10 +266,53 @@ class s3dFile():
             ## Set the material in Blender
             mesh.materials.append(self.materials[0])
 
+        ## for all the lights in the file
+        for l in range(self.getLigNum()):
+            lightName = self.readFromFile("c")
+            lightParentName = self.readFromFile("c")
+
+            lightType = self.readFromFile("i", 1)
+            lightLensflareIndex = self.readFromFile("i", 1)
+            lightColour = self.readFromFile("f", 3)
+            lightPosition = self.readFromFile("f", 3)
+            lightDirection = self.readFromFile("f", 3)
+
+            lightConeInner = self.readFromFile("f", 1)
+            lightConeOuter = self.readFromFile("f", 1)
+            lightMultiplier = self.readFromFile("f", 1)
+            lightDecay = self.readFromFile("f", 1)
+
+            lightKeyframeEndtime = self.readFromFile("i", 1)
+
+            lightPoskeyAmount = self.readFromFile("B", 2)
+            lightDirkeyAmount = self.readFromFile("B", 2)
+            lightLumkeyAmount = self.readFromFile("B", 2)
+            lightConekeyAmount = self.readFromFile("B", 2)
+
+        ## for all the helpers in the file
+        for h in range(self.getHelNum()):
+            helpName = self.readFromFile("c")
+            helpParentName = self.readFromFile("c")
+
+            helpType = self.readFromFile("i", 1)
+            helpPosition = self.readFromFile("f", 3)
+            helpOther = self.readFromFile("f", 3)
+            helpOther2 = self.readFromFile("f", 3)
+
+            helpKeyframeEndtime = self.readFromFile("i", 1)
+
+            helpPoskeyAmount = self.readFromFile("B", 2)
+            helpO1keyAmount = self.readFromFile("B", 2)
+            helpO2keyAmount = self.readFromFile("B", 2)
+
         ## Close the S3D file
         f.close()
 
-        # Open the B3D file
+        ####################
+        ## B3D file
+        ####################
+
+        ## Open the B3D file
         try:
             b3dpath = current_dir + ModelFileName + ".b3d"
             f = open(b3dpath, "rb")
