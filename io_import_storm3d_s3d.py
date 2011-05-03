@@ -295,6 +295,10 @@ class s3dFile():
             ## Set the material in Blender
             mesh.materials.append(self.materials[material_index])
 
+        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.shade_smooth()
+        bpy.ops.object.select_all(action='DESELECT')
+
         ## for all the lights in the file
         for l in range(self.getLigNum()):
             lightName = self.readFromFile("c")
