@@ -284,8 +284,16 @@ class s3dFile():
             bpy.ops.mesh.normals_make_consistent()
             bpy.ops.object.mode_set(mode='OBJECT')
 
+            ## Set GLSL
+            bpy.context.scene.game_settings.material_mode = 'GLSL'
+
+            ## Set all the 3d viewports to textured
+            for a in bpy.context.screen.areas:
+                if a.type == 'VIEW_3D':
+                    a.active_space.viewport_shade = 'TEXTURED'
+
             ## Set the material in Blender
-            mesh.materials.append(self.materials[0])
+            mesh.materials.append(self.materials[material_index])
 
         ## for all the lights in the file
         for l in range(self.getLigNum()):
