@@ -251,11 +251,12 @@ class s3dFile():
                 vertex.append((vertexPosition[0], vertexPosition[2], vertexPosition[1]))
 
                 ## store texture coord data
-                uvTex.append(vertexTextureCoords)
+                uvTex.append((vertexTextureCoords[0], -(vertexTextureCoords[1])))
 
             ## For all the faces in the object
             for n in range(objectFaceAmount):
-                faces.append(self.readFromFile("H", 3))
+                face = self.readFromFile("H", 3)
+                faces.append(face)
 
             if objectWeights == True:
                 ## For all the weights in the object
@@ -268,6 +269,20 @@ class s3dFile():
             ## Send data to the mesh in Blender
             mesh.from_pydata(vertex, [], faces)
             mesh.update()
+
+            bpy.context.scene.objects.active = obj
+            bpy.ops.mesh.uv_texture_add()
+            uv = obj.data.uv_textures.active
+            faces = obj.data.faces
+
+            for face, i in enumerate(uv.data):
+                i.uv1 = uvTex[faces[face].vertices[0]]
+                i.uv2 = uvTex[faces[face].vertices[1]]
+                i.uv3 = uvTex[faces[face].vertices[2]]
+
+            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.mesh.normals_make_consistent()
+            bpy.ops.object.mode_set(mode='OBJECT')
 
             ## Set the material in Blender
             mesh.materials.append(self.materials[0])
