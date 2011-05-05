@@ -132,7 +132,6 @@ class s3dFile():
             texId = self.readFromFile("L", 1)
             texStartFrame = self.readFromFile("H", 1)[0]
             texFrameChangeTime = self.readFromFile("H", 1)[0]
-            
             texDynamic = self.readFromFile("B", 1)
 
         ## for all the materials in the file
@@ -222,7 +221,6 @@ class s3dFile():
             objectVertexAmount = self.readFromFile("H", 1)[0]
             objectFaceAmount = self.readFromFile("H", 1)[0]
             
-            ## lod and weights
             objectLOD = self.readFromFile("B", 1)
             objectWeights = self.readFromFile("B", 1)
 
@@ -280,9 +278,9 @@ class s3dFile():
                 i.uv2 = uvTex[faces[face].vertices[1]]
                 i.uv3 = uvTex[faces[face].vertices[2]]
 
-            bpy.ops.object.mode_set(mode='EDIT')
+            bpy.ops.object.mode_set(mode = 'EDIT')
             bpy.ops.mesh.normals_make_consistent()
-            bpy.ops.object.mode_set(mode='OBJECT')
+            bpy.ops.object.mode_set(mode = 'OBJECT')
 
             ## Set GLSL
             bpy.context.scene.game_settings.material_mode = 'GLSL'
@@ -295,9 +293,9 @@ class s3dFile():
             ## Set the material in Blender
             mesh.materials.append(self.materials[material_index])
 
-        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.select_all(action = 'SELECT')
         bpy.ops.object.shade_smooth()
-        bpy.ops.object.select_all(action='DESELECT')
+        bpy.ops.object.select_all(action = 'DESELECT')
 
         ## for all the lights in the file
         for l in range(self.getLigNum()):
