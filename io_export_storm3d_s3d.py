@@ -105,19 +105,21 @@ class s3dFile():
         self.writeToFile("i", version)
 
         textures = self.getTextures()
-        materials = self.getMaterials()
-        objects = self.getObjectsOfType('MESH')
         self.writeToFile("H", len(textures))
+
+        materials = self.getMaterials()
         self.writeToFile("H", len(materials))
+
+        objects = self.getObjectsOfType('MESH')
         self.writeToFile("H", len(objects))
 
         lights = 0
-  #      lights = self.getObjectsOfType('LAMP')
         self.writeToFile("H", lights)
 
         num_hel = 0
-        boneid = 0
         self.writeToFile("H", num_hel)
+
+        boneid = 0
         self.writeToFile("i", boneid)
 
         for t in textures:
@@ -147,110 +149,111 @@ class s3dFile():
             self.writeToFile("h", 0)
 
             ## materialTextureBase2
-            materialTextureBase2 = 1
+            materialTextureBase2 = -1
             self.writeToFile("h", materialTextureBase2)
 
             ## materialTextureBump
-            self.writeToFile("h", 0)
+            self.writeToFile("h", -1)
 
             ## materialTextureReflection
-            materialTextureReflection = 5
+            materialTextureReflection = -1
             self.writeToFile("h", materialTextureReflection)
 
             if version >= 14:
                 ## materialTextureDistortion
-                self.writeToFile("h", 1)
+                self.writeToFile("h", -1)
 
             ## materialColour
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
+            self.writeToFile("f", m.diffuse_color[0])
+            self.writeToFile("f", m.diffuse_color[1])
+            self.writeToFile("f", m.diffuse_color[2])
 
             ## materialSelfIllum
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
 
             ## materialSpecular
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
 
             ## materialSpecularSharpness
-            self.writeToFile("f", 1)
+            self.writeToFile("f", 1.0)
 
             ## materialDoubleSided
-            self.writeToFile("B", 1)
+            self.writeToFile("B", 0)
 
             ## materialDoubleWireframe
-            self.writeToFile("B", 1)
+            self.writeToFile("B", 0)
 
             ## materialReflectionTexgen
-            self.writeToFile("i", 1)
+            self.writeToFile("i", 0)
 
             ## materialAlphablendType
-            self.writeToFile("i", 1)
+            self.writeToFile("i", 0)
 
             ## materialTransparency
-            self.writeToFile("f", 1)
+            self.writeToFile("f", 0.0)
 
             if version >= 12:
                 ## materialGlow
-                self.writeToFile("f", 1)
+                self.writeToFile("f", 0.0)
 
             if version >= 13:
                 ## materialScrollSpeed
-                self.writeToFile("f", 1)
-                self.writeToFile("f", 1)
+                self.writeToFile("f", 0.0)
+                self.writeToFile("f", 0.0)
 
                 ## materialScrollStart
-                self.writeToFile("B", 1)
+                self.writeToFile("B", 0)
 
             if materialTextureBase2 >= 0:
-                self.writeToFile("f", 1)
-                self.writeToFile("f", 1)
+                self.writeToFile("f", 1.0)
+                self.writeToFile("f", 1.0)
 
             if materialTextureReflection >= 0:
-                self.writeToFile("f", 1)
-                self.writeToFile("f", 1)
+                self.writeToFile("f", 1.0)
+                self.writeToFile("f", 1.0)
 
         for o in objects:
 
             bpy.ops.object.mode_set(mode = 'EDIT')
             bpy.ops.mesh.select_all(action = 'SELECT')
             bpy.ops.mesh.quads_convert_to_tris()
+            bpy.ops.mesh.flip_normals()
             bpy.ops.object.mode_set(mode = 'OBJECT')
             
             ## objectName
             self.writeToFile("s", o.name)
             ## objectParent
-            self.writeToFile("s", o.name)
+            self.writeToFile("s", "")
 
             ## material_index
-            self.writeToFile("H", 1)
+            self.writeToFile("H", 0)
 
             ## object position
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
 
             ## object rotation
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 1.0)
 
             ## object scale
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
-            self.writeToFile("f", 1)
+            self.writeToFile("f", 1.0)
+            self.writeToFile("f", 1.0)
+            self.writeToFile("f", 1.0)
 
             ## objectNoCollision
-            self.writeToFile("B", 1)
+            self.writeToFile("B", 0)
             ## objectNoRender
-            self.writeToFile("B", 1)
+            self.writeToFile("B", 0)
             ## objectLightObject
-            self.writeToFile("B", 1)
+            self.writeToFile("B", 0)
 
             vertex = o.data.vertices
             faces = o.data.faces
@@ -261,7 +264,7 @@ class s3dFile():
             self.writeToFile("H", len(faces))
 
             ## objectLOD
-            self.writeToFile("B", 1)
+            self.writeToFile("B", 0)
 
             ## objectWeights
             objectWeights = 0
@@ -280,11 +283,11 @@ class s3dFile():
 
                 ## vertexTextureCoords
                 self.writeToFile("f", 0.1)
-                self.writeToFile("f", 0.1)
+                self.writeToFile("f", -0.1)
 
                 ## vertexTextureCoords2
                 self.writeToFile("f", 0.1)
-                self.writeToFile("f", 0.1)
+                self.writeToFile("f", -0.1)
 
             for fa in faces:
                 ## face index
@@ -296,8 +299,10 @@ class s3dFile():
                 pass
                 ## objectWeights
 
-
-
+            bpy.ops.object.mode_set(mode = 'EDIT')
+            bpy.ops.mesh.select_all(action = 'SELECT')
+            bpy.ops.mesh.flip_normals()
+            bpy.ops.object.mode_set(mode = 'OBJECT')
 
         ## Close the S3D file
         f.close()
