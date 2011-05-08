@@ -42,8 +42,10 @@ class s3dFile():
         ## Open the S3D file
         try:
             self.f = open(filename, "rb")
+            return True
         except:
             print("S3D file not found")
+            return False
 
     def closeFile(self):
         self.f.close()
@@ -166,6 +168,9 @@ class s3dFile():
                 tlayer = self.readFromFile("f", 2)
 
             mat = bpy.data.materials.new(materialName)
+            mat.diffuse_color[0] = materialColour[0]
+            mat.diffuse_color[1] = materialColour[1]
+            mat.diffuse_color[2] = materialColour[2]
             tex = bpy.data.textures.new(materialName, type = 'IMAGE')
             texSlot = mat.texture_slots.add()
             texSlot.texture = tex
@@ -339,8 +344,7 @@ class s3dFile():
         if getB3D == True:
             try:
                 b3dpath = current_dir + ModelFileName + ".b3d"
-                self.openFile(b3dpath)
-                b3dLoaded = True
+                b3dLoaded = self.openFile(b3dpath)
             except:
                 print("B3D file not found")
 
