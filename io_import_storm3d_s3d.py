@@ -74,7 +74,7 @@ class s3dFile():
     def skipFromFile(self, skipBytes): 
         self.f.seek(f.tell() + skipBytes)
 
-    def open(self, filename, getB3D):
+    def open(self, filename, getB3D, switchGLSL):
 
         ####################
         ## S3D file
@@ -272,8 +272,9 @@ class s3dFile():
             bpy.ops.mesh.normals_make_consistent()
             bpy.ops.object.mode_set(mode = 'OBJECT')
 
-            ## Set GLSL
-            bpy.context.scene.game_settings.material_mode = 'GLSL'
+            if switchGLSL == True:
+                ## Set GLSL shading
+                bpy.context.scene.game_settings.material_mode = 'GLSL'
 
             ## Set all the 3d viewports to textured
             for a in bpy.context.screen.areas:
@@ -423,10 +424,11 @@ class ImportS3D(bpy.types.Operator, ImportHelper):
     filter_glob = StringProperty(default = "*.s3d", options = {'HIDDEN'})
 
     getB3D = BoolProperty(name = "Import B3D (Bones)", description = "Import data from the B3D file if present", default = True)
+    switchGLSL = BoolProperty(name = "Use GLSL", description = "Allow the script to switch to GLSL shading", default = True)
 
     def execute(self, context):
         s3d = s3dFile()
-        s3d.open(self.filepath, self.getB3D)
+        s3d.open(self.filepath, self.getB3D, self.switchGLSL)
         return {'FINISHED'}
 
 def menu_func(self, context):
