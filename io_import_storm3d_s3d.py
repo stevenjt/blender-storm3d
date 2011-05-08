@@ -38,59 +38,49 @@ bl_info = {
 import bpy, struct, os
 
 class s3dFile():
+    def openFile(self, filename):
+        ## Open the S3D file
+        try:
+            self.f = open(filename, "rb")
+        except:
+            print("S3D file not found")
+
+    def closeFile(self):
+        self.f.close()
+
     def readFromFile(self, type, number = 0): 
         if type == "c":
             charString = ''
             char = ''
             while(char != '\x00'):
-                char = bytes.decode(struct.unpack("c", f.read(1))[0])
+                char = bytes.decode(struct.unpack("c", self.f.read(1))[0])
                 if char != '\x00':
                     charString += str(char)
             return charString
         elif type == "B":
-            return struct.unpack(number * "B", f.read(number))[0]
+            return struct.unpack(number * "B", self.f.read(number))[0]
         elif type == "H":
-            return struct.unpack(number * "H", f.read(number * 2))
+            return struct.unpack(number * "H", self.f.read(number * 2))
         elif type == "h":
-            return struct.unpack(number * "h", f.read(number * 2))
+            return struct.unpack(number * "h", self.f.read(number * 2))
         elif type == "L":
-            return struct.unpack(number * ">L", f.read(number * 4))
+            return struct.unpack(number * ">L", self.f.read(number * 4))
         elif type == "f":
-            return struct.unpack(number * "f", f.read(number * 4))
+            return struct.unpack(number * "f", self.f.read(number * 4))
         elif type == "i":
-            return struct.unpack(number * "i", f.read(number * 4))
+            return struct.unpack(number * "i", self.f.read(number * 4))
 
 
     def skipFromFile(self, skipBytes): 
-        f.seek(f.tell() + skipBytes)
-
-    def getTexNum(self):
-        return self.num_tex
-
-    def getMatNum(self):
-        return self.num_mat
-
-    def getObjNum(self):
-        return self.num_obj
-
-    def getLigNum(self):
-        return self.num_lig
-
-    def getHelNum(self):
-        return self.num_hel
+        self.f.seek(f.tell() + skipBytes)
 
     def open(self, filename, getB3D):
-        global f
 
         ####################
         ## S3D file
         ####################
 
-        ## Open the S3D file
-        try:
-            f = open(filename, "rb")
-        except:
-            print("S3D file not found")
+        self.openFile(filename)
 
         if os.name == "posix":
             ## POSIX, use forward slash
@@ -103,31 +93,31 @@ class s3dFile():
         ModelFileName = filename.split(slash)[-1].split(".")[0]
         current_dir = slash.join(current_dir) + slash
 
-        self.file_type = ""
+        file_type = ""
         for x in range(4):
-            self.file_type += bytes.decode(struct.unpack("c", f.read(1))[0])
+            file_type += bytes.decode(struct.unpack("c", self.f.read(1))[0])
 
-        self.version = self.readFromFile("i", 1)[0]
+        version = self.readFromFile("i", 1)[0]
 
-        self.num_tex = self.readFromFile("H", 1)[0]
-        self.num_mat = self.readFromFile("H", 1)[0]
-        self.num_obj = self.readFromFile("H", 1)[0]
-        self.num_lig = self.readFromFile("H", 1)[0]
-        self.num_hel = self.readFromFile("H", 1)[0]
+        textureCount = self.readFromFile("H", 1)[0]
+        materialCount = self.readFromFile("H", 1)[0]
+        objectCount = self.readFromFile("H", 1)[0]
+        lightCount = self.readFromFile("H", 1)[0]
+        helperCount = self.readFromFile("H", 1)[0]
 
-        self.boneid = self.readFromFile("i", 1)[0]
+        boneid = self.readFromFile("i", 1)[0]
 
-        self.textures = []
-        self.materials = []
+        textures = []
+        materials = []
 
         ## for all the textures in the file
-        for t in range(self.getTexNum()):
+        for t in range(textureCount):
 
             ## read texture filename
             textureName = self.readFromFile("c")
 
             ## put the texture into the textures list
-            self.textures.append(textureName)
+            textures.append(textureName)
             
             texId = self.readFromFile("L", 1)
             texStartFrame = self.readFromFile("H", 1)[0]
@@ -135,7 +125,7 @@ class s3dFile():
             texDynamic = self.readFromFile("B", 1)
 
         ## for all the materials in the file
-        for m in range(self.getMatNum()):
+        for m in range(materialCount):
 
             ## read material name
             materialName = self.readFromFile("c")
@@ -146,7 +136,7 @@ class s3dFile():
             materialTextureBump = self.readFromFile("h", 1)[0]
             materialTextureReflection = self.readFromFile("h", 1)[0]
 
-            if self.version >= 14:
+            if version >= 14:
                 materialTextureDistortion = self.readFromFile("h", 1)[0]
 
             materialColour = self.readFromFile("f", 3)
@@ -162,10 +152,10 @@ class s3dFile():
 
             materialTransparency = self.readFromFile("f", 1)
 
-            if self.version >= 12:
+            if version >= 12:
                 materialGlow = self.readFromFile("f", 1)
 
-            if self.version >= 13:
+            if version >= 13:
                 materialScrollSpeed = self.readFromFile("f", 2)
                 materialScrollStart = self.readFromFile("B", 1)
 
@@ -181,17 +171,17 @@ class s3dFile():
             texSlot.texture = tex
             texSlot.texture_coords = 'UV'
             try:
-                image = bpy.data.images.load(current_dir + self.textures[materialTextureBase])
+                image = bpy.data.images.load(current_dir + textures[materialTextureBase])
                 tex.image = image
-                print("Image loaded from: " + self.textures[materialTextureBase])
+                print("Image loaded from: " + textures[materialTextureBase])
             except:
                 print("Could not load image id: " + str(materialTextureBase))
 
             ## append material name to the materials list
-            self.materials.append(mat)
+            materials.append(mat)
 
         ## for all the objects in the file
-        for o in range(self.getObjNum()):
+        for o in range(objectCount):
 
             objectName = self.readFromFile("c")
             objectParent = self.readFromFile("c")
@@ -291,14 +281,14 @@ class s3dFile():
                     a.active_space.viewport_shade = 'TEXTURED'
 
             ## Set the material in Blender
-            mesh.materials.append(self.materials[material_index])
+            mesh.materials.append(materials[material_index])
 
         bpy.ops.object.select_all(action = 'SELECT')
         bpy.ops.object.shade_smooth()
         bpy.ops.object.select_all(action = 'DESELECT')
 
         ## for all the lights in the file
-        for l in range(self.getLigNum()):
+        for l in range(lightCount):
             lightName = self.readFromFile("c")
             lightParentName = self.readFromFile("c")
 
@@ -321,7 +311,7 @@ class s3dFile():
             lightConekeyAmount = self.readFromFile("B", 2)
 
         ## for all the helpers in the file
-        for h in range(self.getHelNum()):
+        for h in range(helperCount):
             helpName = self.readFromFile("c")
             helpParentName = self.readFromFile("c")
 
@@ -337,7 +327,7 @@ class s3dFile():
             helpO2keyAmount = self.readFromFile("B", 2)
 
         ## Close the S3D file
-        f.close()
+        self.closeFile()
 
         ####################
         ## B3D file
@@ -348,20 +338,20 @@ class s3dFile():
         if getB3D == True:
             try:
                 b3dpath = current_dir + ModelFileName + ".b3d"
-                f = open(b3dpath, "rb")
+                self.openFile(b3dpath)
                 b3dLoaded = True
             except:
                 print("B3D file not found")
 
         if b3dLoaded == True:
-            self.b3dfile_type = ""
+            b3dfile_type = ""
             for x in range(5):
-                self.b3dfile_type += bytes.decode(struct.unpack("c", f.read(1))[0])
+                b3dfile_type += bytes.decode(struct.unpack("c", self.f.read(1))[0])
 
-            self.b3dBoneId = self.readFromFile("i", 1)[0]
-            self.b3dBoneCount = self.readFromFile("i", 1)[0]
+            b3dBoneId = self.readFromFile("i", 1)[0]
+            b3dBoneCount = self.readFromFile("i", 1)[0]
 
-            for b in range(self.b3dBoneCount):
+            for b in range(b3dBoneCount):
 
                 boneName = self.readFromFile("c")
 
@@ -417,7 +407,7 @@ class s3dFile():
                 helperFoo = self.readFromFile("B", 2)
 
             ## Close the B3D file
-            f.close()
+            self.closeFile()
 
 ## Blender script/addon stuff
 from bpy.props import StringProperty, BoolProperty
