@@ -191,7 +191,7 @@ class s3dFile():
             objectName = self.readFromFile("c")
             objectParent = self.readFromFile("c")
 
-            material_index = self.readFromFile("H", 1)[0]
+            materialIndex = self.readFromFile("H", 1)[0]
 
             ## object position
             objectPositionX = self.readFromFile("f", 1)[0]
@@ -287,7 +287,7 @@ class s3dFile():
                     a.active_space.viewport_shade = 'TEXTURED'
 
             ## Set the material in Blender
-            mesh.materials.append(materials[material_index])
+            mesh.materials.append(materials[materialIndex])
 
         bpy.ops.object.select_all(action = 'SELECT')
         bpy.ops.object.shade_smooth()

@@ -124,7 +124,7 @@ class s3dFile():
 
         for t in textures:
             ## textureName
-            self.writeToFile("s", t.name)
+            self.writeToFile("s", t.image.name)
 
             ## texId
             self.writeToFile("L", 0)
@@ -229,7 +229,7 @@ class s3dFile():
             ## objectParent
             self.writeToFile("s", "")
 
-            ## material_index
+            ## materialIndex
             self.writeToFile("H", 0)
 
             ## object position
@@ -270,7 +270,17 @@ class s3dFile():
             objectWeights = 0
             self.writeToFile("B", objectWeights)
 
+            vertexUVs = []
+
             for v in vertex:
+                vertexUVs.append(v)
+
+            for i, face in enumerate(o.data.uv_textures.active.data):
+                vertexUVs[faces[i].vertices[0]] = face.uv1
+                vertexUVs[faces[i].vertices[1]] = face.uv2
+                vertexUVs[faces[i].vertices[2]] = face.uv3
+
+            for i, v in enumerate(vertex):
                 ## vertexPosition
                 self.writeToFile("f", v.co[0])
                 self.writeToFile("f", v.co[2])
@@ -282,8 +292,8 @@ class s3dFile():
                 self.writeToFile("f", v.normal[2])
 
                 ## vertexTextureCoords
-                self.writeToFile("f", 0.1)
-                self.writeToFile("f", -0.1)
+                self.writeToFile("f", vertexUVs[i][0])
+                self.writeToFile("f", -(vertexUVs[i][1]))
 
                 ## vertexTextureCoords2
                 self.writeToFile("f", 0.1)
