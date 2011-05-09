@@ -228,6 +228,9 @@ class s3dFile():
             ## Add this object to the Blender scene
             base = bpy.context.scene.objects.link(obj)
 
+            ## Set the object location
+            obj.location = (objectPositionX, objectPositionY, objectPositionZ)
+
             vertex = []
             faces = []
             uvTex = []

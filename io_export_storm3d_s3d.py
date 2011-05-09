@@ -233,9 +233,9 @@ class s3dFile():
             self.writeToFile("H", 0)
 
             ## object position
-            self.writeToFile("f", 0.0)
-            self.writeToFile("f", 0.0)
-            self.writeToFile("f", 0.0)
+            self.writeToFile("f", o.location[0])
+            self.writeToFile("f", o.location[1])
+            self.writeToFile("f", o.location[2])
 
             ## object rotation
             self.writeToFile("f", 0.0)
