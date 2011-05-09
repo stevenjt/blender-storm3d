@@ -223,6 +223,7 @@ class s3dFile():
             bpy.ops.mesh.quads_convert_to_tris()
             bpy.ops.mesh.flip_normals()
             bpy.ops.object.mode_set(mode = 'OBJECT')
+            bpy.ops.object.rotation_apply()
             
             ## objectName
             self.writeToFile("s", o.name)
@@ -238,10 +239,10 @@ class s3dFile():
             self.writeToFile("f", o.location[2])
 
             ## object rotation
-            self.writeToFile("f", 0.0)
-            self.writeToFile("f", 0.0)
-            self.writeToFile("f", 0.0)
-            self.writeToFile("f", 1.0)
+            self.writeToFile("f", o.rotation_quaternion[1])
+            self.writeToFile("f", o.rotation_quaternion[2])
+            self.writeToFile("f", o.rotation_quaternion[3])
+            self.writeToFile("f", o.rotation_quaternion[0])
 
             ## object scale
             self.writeToFile("f", 1.0)

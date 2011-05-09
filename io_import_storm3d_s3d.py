@@ -231,6 +231,9 @@ class s3dFile():
             ## Set the object location
             obj.location = (objectPositionX, objectPositionY, objectPositionZ)
 
+            ## Set the object rotation
+            obj.rotation_quaternion = (objectRotationX, objectRotationY, objectRotationZ, objectRotationW)
+
             vertex = []
             faces = []
             uvTex = []
