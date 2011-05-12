@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# io_import_storm3d_s3d.py
+# io_scene_s3d
 #
 # Copyright (C) 2011 Steven J Thompson
 #
@@ -22,20 +22,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-bl_info = {
-    "name": "Import: Storm3D S3D",
-    "author": "Steven J Thompson",
-    "version": (0, 0, 1),
-    "blender": (2, 5, 7),
-    "api": 36079,
-    "location": "File > Import ",
-    "description": "Imports S3D files which are used in the Frozenbyte Storm3D engine",
-    "warning": "Work in progress",
-    "wiki_url": "",
-    "tracker_url": "",
-    "category": "Import-Export"}
-
-import bpy, struct, os
+import bpy
+import struct
+import os
 
 class s3dFile():
     def openFile(self, filename):
@@ -420,40 +409,282 @@ class s3dFile():
             ## Close the B3D file
             self.closeFile()
 
-## Blender script/addon stuff
-from bpy.props import StringProperty, BoolProperty
-from io_utils import ImportHelper
+    def writeToFile(self, type, value = 0, endString = True): 
+        if type == "s":
+            if endString == True:
+                value = value + "\x00"
+            f.write(bytes(value, "UTF-8"))
+        elif type == "i":
+            string = struct.pack("i", value)
+            f.write(string)
+        elif type == "f":
+            string = struct.pack("f", value)
+            f.write(string)
+        elif type == "H":
+            string = struct.pack("H", value)
+            f.write(string)
+        elif type == "h":
+            string = struct.pack("h", value)
+            f.write(string)
+        elif type == "L":
+            string = struct.pack(">L", value)
+            f.write(string)
+        elif type == "B":
+            string = struct.pack("B", value)
+            f.write(string)
 
-class ImportS3D(bpy.types.Operator, ImportHelper):
-    bl_idname = "import.s3d"
-    bl_label = "Import S3D"
-    bl_space_type = "PROPERTIES"
-    bl_region_type = "WINDOW"
+    def getObjectsOfType(self, objType):
+        objectList = []
+        for o in bpy.data.objects:
+            if o.type == objType:
+                objectList.append(bpy.data.objects[o.name])
+        return objectList
 
-    filename_ext = ".s3d"
-    filter_glob = StringProperty(default = "*.s3d", options = {'HIDDEN'})
+    def getTextures(self):
+        return bpy.data.textures
 
-    getB3D = BoolProperty(name = "Import B3D (Bones)", description = "Import data from the B3D file if present", default = True)
-    switchGLSL = BoolProperty(name = "Use GLSL", description = "Allow the script to switch to GLSL shading", default = True)
+    def getMaterials(self):
+        return bpy.data.materials
 
-    def execute(self, context):
-        s3d = s3dFile()
-        s3d.open(self.filepath, self.getB3D, self.switchGLSL)
-        return {'FINISHED'}
+    def write(self, filename, getB3D):
+        global f
 
-def menu_func(self, context):
-    self.layout.operator(ImportS3D.bl_idname, text="Storm3D S3D (.s3d)")
+        ####################
+        ## S3D file
+        ####################
 
+        ## Create and open the target S3D file
+        try:
+            f = open(filename, "wb")
+        except:
+            print("S3D file not found")
 
-def register():
-    bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_import.append(menu_func)
+        if os.name == "posix":
+            ## POSIX, use forward slash
+            slash = "/"
+        else:
+            ## Probably Windows, use backslash
+           slash = "\\"
 
+        current_dir = filename.split(slash)[:-1]
+        ModelFileName = filename.split(slash)[-1].split(".")[0]
+        current_dir = slash.join(current_dir) + slash
 
-def unregister():
-    bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_import.remove(menu_func)
+        file_type = "S3D0"
+        version = 14
+        self.writeToFile("s", file_type, False)
+        self.writeToFile("i", version)
 
+        textures = self.getTextures()
+        self.writeToFile("H", len(textures))
 
-if __name__ == "__main__":
-    register()
+        materials = self.getMaterials()
+        self.writeToFile("H", len(materials))
+
+        objects = self.getObjectsOfType('MESH')
+        self.writeToFile("H", len(objects))
+
+        lights = 0
+        self.writeToFile("H", lights)
+
+        num_hel = 0
+        self.writeToFile("H", num_hel)
+
+        boneid = 0
+        self.writeToFile("i", boneid)
+
+        for t in textures:
+            ## textureName
+            self.writeToFile("s", t.image.name)
+
+            ## texId
+            self.writeToFile("L", 0)
+
+            ## texStartFrame
+            self.writeToFile("H", 0)
+
+            ## texFrameChangeTime
+            self.writeToFile("H", 0)
+
+            ## texDynamic
+            self.writeToFile("B", 0)
+
+        for m in materials:
+
+            ## write material name
+            self.writeToFile("s", m.name)
+
+            ## write the details
+
+            ## materialTextureBase
+            self.writeToFile("h", 0)
+
+            ## materialTextureBase2
+            materialTextureBase2 = -1
+            self.writeToFile("h", materialTextureBase2)
+
+            ## materialTextureBump
+            self.writeToFile("h", -1)
+
+            ## materialTextureReflection
+            materialTextureReflection = -1
+            self.writeToFile("h", materialTextureReflection)
+
+            if version >= 14:
+                ## materialTextureDistortion
+                self.writeToFile("h", -1)
+
+            ## materialColour
+            self.writeToFile("f", m.diffuse_color[0])
+            self.writeToFile("f", m.diffuse_color[1])
+            self.writeToFile("f", m.diffuse_color[2])
+
+            ## materialSelfIllum
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
+
+            ## materialSpecular
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
+            self.writeToFile("f", 0.0)
+
+            ## materialSpecularSharpness
+            self.writeToFile("f", 1.0)
+
+            ## materialDoubleSided
+            self.writeToFile("B", 0)
+
+            ## materialDoubleWireframe
+            self.writeToFile("B", 0)
+
+            ## materialReflectionTexgen
+            self.writeToFile("i", 0)
+
+            ## materialAlphablendType
+            self.writeToFile("i", 0)
+
+            ## materialTransparency
+            self.writeToFile("f", 0.0)
+
+            if version >= 12:
+                ## materialGlow
+                self.writeToFile("f", 0.0)
+
+            if version >= 13:
+                ## materialScrollSpeed
+                self.writeToFile("f", 0.0)
+                self.writeToFile("f", 0.0)
+
+                ## materialScrollStart
+                self.writeToFile("B", 0)
+
+            if materialTextureBase2 >= 0:
+                self.writeToFile("f", 1.0)
+                self.writeToFile("f", 1.0)
+
+            if materialTextureReflection >= 0:
+                self.writeToFile("f", 1.0)
+                self.writeToFile("f", 1.0)
+
+        for o in objects:
+
+            bpy.ops.object.mode_set(mode = 'EDIT')
+            bpy.ops.mesh.select_all(action = 'SELECT')
+            bpy.ops.mesh.quads_convert_to_tris()
+            bpy.ops.mesh.flip_normals()
+            bpy.ops.object.mode_set(mode = 'OBJECT')
+            bpy.ops.object.rotation_apply()
+            
+            ## objectName
+            self.writeToFile("s", o.name)
+            ## objectParent
+            self.writeToFile("s", "")
+
+            ## materialIndex
+            self.writeToFile("H", 0)
+
+            ## object position
+            self.writeToFile("f", o.location[0])
+            self.writeToFile("f", o.location[1])
+            self.writeToFile("f", o.location[2])
+
+            ## object rotation
+            self.writeToFile("f", o.rotation_quaternion[1])
+            self.writeToFile("f", o.rotation_quaternion[2])
+            self.writeToFile("f", o.rotation_quaternion[3])
+            self.writeToFile("f", o.rotation_quaternion[0])
+
+            ## object scale
+            self.writeToFile("f", 1.0)
+            self.writeToFile("f", 1.0)
+            self.writeToFile("f", 1.0)
+
+            ## objectNoCollision
+            self.writeToFile("B", 0)
+            ## objectNoRender
+            self.writeToFile("B", 0)
+            ## objectLightObject
+            self.writeToFile("B", 0)
+
+            vertex = o.data.vertices
+            faces = o.data.faces
+
+            ## objectVertexAmount
+            self.writeToFile("H", len(vertex))
+            ## objectFaceAmount
+            self.writeToFile("H", len(faces))
+
+            ## objectLOD
+            self.writeToFile("B", 0)
+
+            ## objectWeights
+            objectWeights = 0
+            self.writeToFile("B", objectWeights)
+
+            vertexUVs = []
+
+            for v in vertex:
+                vertexUVs.append(v)
+
+            for i, face in enumerate(o.data.uv_textures.active.data):
+                vertexUVs[faces[i].vertices[0]] = face.uv1
+                vertexUVs[faces[i].vertices[1]] = face.uv2
+                vertexUVs[faces[i].vertices[2]] = face.uv3
+
+            for i, v in enumerate(vertex):
+                ## vertexPosition
+                self.writeToFile("f", v.co[0])
+                self.writeToFile("f", v.co[2])
+                self.writeToFile("f", v.co[1])
+
+                ## vertexNormal
+                self.writeToFile("f", v.normal[0])
+                self.writeToFile("f", v.normal[1])
+                self.writeToFile("f", v.normal[2])
+
+                ## vertexTextureCoords
+                self.writeToFile("f", vertexUVs[i][0])
+                self.writeToFile("f", -(vertexUVs[i][1]))
+
+                ## vertexTextureCoords2
+                self.writeToFile("f", 0.1)
+                self.writeToFile("f", -0.1)
+
+            for fa in faces:
+                ## face index
+                self.writeToFile("H", fa.vertices[0])
+                self.writeToFile("H", fa.vertices[1])
+                self.writeToFile("H", fa.vertices[2])
+
+            if objectWeights == True:
+                pass
+                ## objectWeights
+
+            bpy.ops.object.mode_set(mode = 'EDIT')
+            bpy.ops.mesh.select_all(action = 'SELECT')
+            bpy.ops.mesh.flip_normals()
+            bpy.ops.object.mode_set(mode = 'OBJECT')
+
+        ## Close the S3D file
+        f.close()
