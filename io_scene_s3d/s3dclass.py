@@ -27,10 +27,10 @@ import struct
 import os
 
 class s3dFile():
-    def openFile(self, filename):
+    def openFile(self, filename, mode):
         ## Open the S3D file
         try:
-            self.f = open(filename, "rb")
+            self.f = open(filename, mode)
             return True
         except:
             print("S3D file not found")
@@ -71,7 +71,7 @@ class s3dFile():
         ## S3D file
         ####################
 
-        self.openFile(filename)
+        self.openFile(filename, "rb")
 
         if os.name == "posix":
             ## POSIX, use forward slash
@@ -339,7 +339,7 @@ class s3dFile():
         if getB3D == True:
             try:
                 b3dpath = current_dir + ModelFileName + ".b3d"
-                b3dLoaded = self.openFile(b3dpath)
+                b3dLoaded = self.openFile(b3dpath, "rb")
             except:
                 print("B3D file not found")
 
@@ -413,25 +413,19 @@ class s3dFile():
         if type == "s":
             if endString == True:
                 value = value + "\x00"
-            f.write(bytes(value, "UTF-8"))
+            self.f.write(bytes(value, "UTF-8"))
         elif type == "i":
-            string = struct.pack("i", value)
-            f.write(string)
+            self.f.write(struct.pack("i", value))
         elif type == "f":
-            string = struct.pack("f", value)
-            f.write(string)
+            self.f.write(struct.pack("f", value))
         elif type == "H":
-            string = struct.pack("H", value)
-            f.write(string)
+            self.f.write(struct.pack("H", value))
         elif type == "h":
-            string = struct.pack("h", value)
-            f.write(string)
+            self.f.write(struct.pack("h", value))
         elif type == "L":
-            string = struct.pack(">L", value)
-            f.write(string)
+            self.f.write(struct.pack(">L", value))
         elif type == "B":
-            string = struct.pack("B", value)
-            f.write(string)
+            self.f.write(struct.pack("B", value))
 
     def getObjectsOfType(self, objType):
         objectList = []
@@ -447,17 +441,10 @@ class s3dFile():
         return bpy.data.materials
 
     def write(self, filename, getB3D):
-        global f
 
         ####################
         ## S3D file
         ####################
-
-        ## Create and open the target S3D file
-        try:
-            f = open(filename, "wb")
-        except:
-            print("S3D file not found")
 
         if os.name == "posix":
             ## POSIX, use forward slash
@@ -465,6 +452,9 @@ class s3dFile():
         else:
             ## Probably Windows, use backslash
            slash = "\\"
+
+        ## Create and open the target S3D file
+        self.openFile(filename, "wb")
 
         current_dir = filename.split(slash)[:-1]
         ModelFileName = filename.split(slash)[-1].split(".")[0]
@@ -687,4 +677,4 @@ class s3dFile():
             bpy.ops.object.mode_set(mode = 'OBJECT')
 
         ## Close the S3D file
-        f.close()
+        self.closeFile()
