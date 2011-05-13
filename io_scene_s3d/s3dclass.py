@@ -27,14 +27,33 @@ import struct
 import os
 
 class s3dFile():
-    def openFile(self, filename, mode):
+    def openFile(self, path, mode):
+
+        ## Get the file name and directory from the path string
+        if os.name == "posix":
+            ## POSIX, use forward slash
+            slash = "/"
+        else:
+            ## Probably Windows, use backslash
+           slash = "\\"
+
+        directory = path.split(slash)[:-1]
+        self.fileName = path.split(slash)[-1].split(".")[0]
+        self.directory = slash.join(directory) + slash
+
         ## Open the S3D file
         try:
-            self.f = open(filename, mode)
+            self.f = open(path, mode)
             return True
         except:
             print("S3D file not found")
             return False
+
+    def getFileName(self):
+        return self.fileName
+
+    def getDirectory(self):
+        return self.directory
 
     def closeFile(self):
         self.f.close()
@@ -72,17 +91,6 @@ class s3dFile():
         ####################
 
         self.openFile(filename, "rb")
-
-        if os.name == "posix":
-            ## POSIX, use forward slash
-            slash = "/"
-        else:
-            ## Probably Windows, use backslash
-           slash = "\\"
-
-        current_dir = filename.split(slash)[:-1]
-        ModelFileName = filename.split(slash)[-1].split(".")[0]
-        current_dir = slash.join(current_dir) + slash
 
         file_type = ""
         for x in range(4):
@@ -165,7 +173,7 @@ class s3dFile():
             texSlot.texture = tex
             texSlot.texture_coords = 'UV'
             try:
-                image = bpy.data.images.load(current_dir + textures[materialTextureBase])
+                image = bpy.data.images.load(self.getDirectory() + textures[materialTextureBase])
                 tex.image = image
                 print("Image loaded from: " + textures[materialTextureBase])
             except:
@@ -338,7 +346,7 @@ class s3dFile():
         b3dLoaded = False
         if getB3D == True:
             try:
-                b3dpath = current_dir + ModelFileName + ".b3d"
+                b3dpath = self.getDirectory() + self.getFileName() + ".b3d"
                 b3dLoaded = self.openFile(b3dpath, "rb")
             except:
                 print("B3D file not found")
@@ -446,19 +454,8 @@ class s3dFile():
         ## S3D file
         ####################
 
-        if os.name == "posix":
-            ## POSIX, use forward slash
-            slash = "/"
-        else:
-            ## Probably Windows, use backslash
-           slash = "\\"
-
         ## Create and open the target S3D file
         self.openFile(filename, "wb")
-
-        current_dir = filename.split(slash)[:-1]
-        ModelFileName = filename.split(slash)[-1].split(".")[0]
-        current_dir = slash.join(current_dir) + slash
 
         file_type = "S3D0"
         version = 14
