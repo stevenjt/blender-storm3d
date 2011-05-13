@@ -168,10 +168,18 @@ class s3dFile():
             mat.diffuse_color[0] = materialColour[0]
             mat.diffuse_color[1] = materialColour[1]
             mat.diffuse_color[2] = materialColour[2]
+
+            ## set material to use transparency
+            mat.use_transparency = True
+            mat.alpha = 0
+
             tex = bpy.data.textures.new(materialName, type = 'IMAGE')
             texSlot = mat.texture_slots.add()
             texSlot.texture = tex
             texSlot.texture_coords = 'UV'
+
+            ## set the texture to use the alpha as transparency
+            texSlot.use_map_alpha = True
             try:
                 image = bpy.data.images.load(self.getDirectory() + textures[materialTextureBase])
                 tex.image = image
