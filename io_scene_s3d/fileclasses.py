@@ -26,7 +26,7 @@ import bpy
 import struct
 import os
 
-class s3dFile():
+class BinaryFile():
     def openFile(self, path, mode):
 
         ## Get the file name and directory from the path string
@@ -49,14 +49,14 @@ class s3dFile():
             print("S3D file not found")
             return False
 
+    def closeFile(self):
+        self.f.close()
+
     def getFileName(self):
         return self.fileName
 
     def getDirectory(self):
         return self.directory
-
-    def closeFile(self):
-        self.f.close()
 
     def readFromFile(self, type, number = 0): 
         if type == "c":
@@ -80,17 +80,36 @@ class s3dFile():
         elif type == "i":
             return struct.unpack(number * "i", self.f.read(number * 4))
 
+    def writeToFile(self, type, value = 0, endString = True): 
+        if type == "s":
+            if endString == True:
+                value = value + "\x00"
+            self.f.write(bytes(value, "UTF-8"))
+        elif type == "i":
+            self.f.write(struct.pack("i", value))
+        elif type == "f":
+            self.f.write(struct.pack("f", value))
+        elif type == "H":
+            self.f.write(struct.pack("H", value))
+        elif type == "h":
+            self.f.write(struct.pack("h", value))
+        elif type == "L":
+            self.f.write(struct.pack(">L", value))
+        elif type == "B":
+            self.f.write(struct.pack("B", value))
 
     def skipFromFile(self, skipBytes): 
         self.f.seek(f.tell() + skipBytes)
 
-    def open(self, filename, getB3D, switchGLSL):
+class S3DFile(BinaryFile):
+
+    def open(self, path, switchGLSL):
 
         ####################
         ## S3D file
         ####################
 
-        self.openFile(filename, "rb")
+        self.openFile(path, "rb")
 
         file_type = ""
         for x in range(4):
@@ -346,103 +365,6 @@ class s3dFile():
         ## Close the S3D file
         self.closeFile()
 
-        ####################
-        ## B3D file
-        ####################
-
-        ## Open the B3D file if it is to be read
-        b3dLoaded = False
-        if getB3D == True:
-            try:
-                b3dpath = self.getDirectory() + self.getFileName() + ".b3d"
-                b3dLoaded = self.openFile(b3dpath, "rb")
-            except:
-                print("B3D file not found")
-
-        if b3dLoaded == True:
-            b3dfile_type = ""
-            for x in range(5):
-                b3dfile_type += bytes.decode(struct.unpack("c", self.f.read(1))[0])
-
-            b3dBoneId = self.readFromFile("i", 1)[0]
-            b3dBoneCount = self.readFromFile("i", 1)[0]
-
-            for b in range(b3dBoneCount):
-
-                boneName = self.readFromFile("c")
-
-                ## bone position
-                bonePositionX = self.readFromFile("f", 1)[0]
-                bonePositionY = self.readFromFile("f", 1)[0]
-                bonePositionZ = self.readFromFile("f", 1)[0]
-
-                ## bone rotiation
-                boneRotationW = self.readFromFile("f", 1)[0]
-                boneRotationX = self.readFromFile("f", 1)[0]
-                boneRotationY = self.readFromFile("f", 1)[0]
-                boneRotationZ = self.readFromFile("f", 1)[0]
-
-                ## bone original position
-                boneOriginalPositionX = self.readFromFile("f", 1)[0]
-                boneOriginalPositionY = self.readFromFile("f", 1)[0]
-                boneOriginalPositionZ = self.readFromFile("f", 1)[0]
-
-                ## bone original rotiation
-                boneOriginalRotationW = self.readFromFile("f", 1)[0]
-                boneOriginalRotationX = self.readFromFile("f", 1)[0]
-                boneOriginalRotationY = self.readFromFile("f", 1)[0]
-                boneOriginalRotationZ = self.readFromFile("f", 1)[0]
-
-                boneMaxAngles = self.readFromFile("f", 6)
-
-                boneLength = self.readFromFile("f", 1)
-                boneThickness = self.readFromFile("f", 1)
-
-                boneParentId = self.readFromFile("i", 1)
-
-            self.b3dBoneHelperCount = self.readFromFile("i", 1)[0]
-
-            for h in range(self.b3dBoneHelperCount):
-
-                helperName = self.readFromFile("c")
-                helperParent = self.readFromFile("c")
-
-                helperType = self.readFromFile("i", 1)
-
-                ## helper position
-                helperPositionX = self.readFromFile("f", 1)[0]
-                helperPositionY = self.readFromFile("f", 1)[0]
-                helperPositionZ = self.readFromFile("f", 1)[0]
-
-                helperOther1 = self.readFromFile("f", 3)
-                helperOther2 = self.readFromFile("f", 3)
-
-                helperEndTime = self.readFromFile("i", 1)[0]
-                helperFoo = self.readFromFile("B", 2)
-                helperFoo = self.readFromFile("B", 2)
-                helperFoo = self.readFromFile("B", 2)
-
-            ## Close the B3D file
-            self.closeFile()
-
-    def writeToFile(self, type, value = 0, endString = True): 
-        if type == "s":
-            if endString == True:
-                value = value + "\x00"
-            self.f.write(bytes(value, "UTF-8"))
-        elif type == "i":
-            self.f.write(struct.pack("i", value))
-        elif type == "f":
-            self.f.write(struct.pack("f", value))
-        elif type == "H":
-            self.f.write(struct.pack("H", value))
-        elif type == "h":
-            self.f.write(struct.pack("h", value))
-        elif type == "L":
-            self.f.write(struct.pack(">L", value))
-        elif type == "B":
-            self.f.write(struct.pack("B", value))
-
     def getObjectsOfType(self, objType):
         objectList = []
         for o in bpy.data.objects:
@@ -450,30 +372,24 @@ class s3dFile():
                 objectList.append(bpy.data.objects[o.name])
         return objectList
 
-    def getTextures(self):
-        return bpy.data.textures
-
-    def getMaterials(self):
-        return bpy.data.materials
-
-    def write(self, filename, getB3D):
+    def write(self, path):
 
         ####################
         ## S3D file
         ####################
 
         ## Create and open the target S3D file
-        self.openFile(filename, "wb")
+        self.openFile(path, "wb")
 
         file_type = "S3D0"
         version = 14
         self.writeToFile("s", file_type, False)
         self.writeToFile("i", version)
 
-        textures = self.getTextures()
+        textures = bpy.data.textures
         self.writeToFile("H", len(textures))
 
-        materials = self.getMaterials()
+        materials = bpy.data.materials
         self.writeToFile("H", len(materials))
 
         objects = self.getObjectsOfType('MESH')
@@ -683,3 +599,89 @@ class s3dFile():
 
         ## Close the S3D file
         self.closeFile()
+
+class B3DFile(BinaryFile):
+
+    def open(self, path, getB3D):
+
+        ####################
+        ## B3D file
+        ####################
+
+        ## Open the B3D file if it is to be read
+        b3dLoaded = False
+        if getB3D == True:
+            try:
+                ## TEMP
+                temp = self.openFile(path, "rb")
+
+                b3dpath = self.getDirectory() + self.getFileName() + ".b3d"
+                b3dLoaded = self.openFile(b3dpath, "rb")
+            except:
+                print("B3D file not found")
+
+        if b3dLoaded == True:
+            b3dfile_type = ""
+            for x in range(5):
+                b3dfile_type += bytes.decode(struct.unpack("c", self.f.read(1))[0])
+
+            b3dBoneId = self.readFromFile("i", 1)[0]
+            b3dBoneCount = self.readFromFile("i", 1)[0]
+
+            for b in range(b3dBoneCount):
+
+                boneName = self.readFromFile("c")
+
+                ## bone position
+                bonePositionX = self.readFromFile("f", 1)[0]
+                bonePositionY = self.readFromFile("f", 1)[0]
+                bonePositionZ = self.readFromFile("f", 1)[0]
+
+                ## bone rotiation
+                boneRotationW = self.readFromFile("f", 1)[0]
+                boneRotationX = self.readFromFile("f", 1)[0]
+                boneRotationY = self.readFromFile("f", 1)[0]
+                boneRotationZ = self.readFromFile("f", 1)[0]
+
+                ## bone original position
+                boneOriginalPositionX = self.readFromFile("f", 1)[0]
+                boneOriginalPositionY = self.readFromFile("f", 1)[0]
+                boneOriginalPositionZ = self.readFromFile("f", 1)[0]
+
+                ## bone original rotiation
+                boneOriginalRotationW = self.readFromFile("f", 1)[0]
+                boneOriginalRotationX = self.readFromFile("f", 1)[0]
+                boneOriginalRotationY = self.readFromFile("f", 1)[0]
+                boneOriginalRotationZ = self.readFromFile("f", 1)[0]
+
+                boneMaxAngles = self.readFromFile("f", 6)
+
+                boneLength = self.readFromFile("f", 1)
+                boneThickness = self.readFromFile("f", 1)
+
+                boneParentId = self.readFromFile("i", 1)
+
+            self.b3dBoneHelperCount = self.readFromFile("i", 1)[0]
+
+            for h in range(self.b3dBoneHelperCount):
+
+                helperName = self.readFromFile("c")
+                helperParent = self.readFromFile("c")
+
+                helperType = self.readFromFile("i", 1)
+
+                ## helper position
+                helperPositionX = self.readFromFile("f", 1)[0]
+                helperPositionY = self.readFromFile("f", 1)[0]
+                helperPositionZ = self.readFromFile("f", 1)[0]
+
+                helperOther1 = self.readFromFile("f", 3)
+                helperOther2 = self.readFromFile("f", 3)
+
+                helperEndTime = self.readFromFile("i", 1)[0]
+                helperFoo = self.readFromFile("B", 2)
+                helperFoo = self.readFromFile("B", 2)
+                helperFoo = self.readFromFile("B", 2)
+
+            ## Close the B3D file
+            self.closeFile()
