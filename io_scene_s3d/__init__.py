@@ -48,7 +48,7 @@ class ImportS3D(bpy.types.Operator, ImportHelper):
     filename_ext = ".s3d"
     filter_glob = StringProperty(default = "*.s3d", options = {'HIDDEN'})
 
-    getB3D = BoolProperty(name = "Import B3D (Bones)", description = "Import data from the B3D file if present", default = True)
+    getB3D = BoolProperty(name = "Import B3D (Bones)", description = "Import data from the B3D file if present", default = False)
     switchGLSL = BoolProperty(name = "Use GLSL", description = "Allow the script to switch to GLSL shading", default = True)
 
     def execute(self, context):

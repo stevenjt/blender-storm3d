@@ -42,12 +42,12 @@ class BinaryFile():
         self.fileName = path.split(slash)[-1].split(".")[0]
         self.directory = slash.join(directory) + slash
 
-        ## Open the S3D file
+        ## Open the file
         try:
             self.f = open(path, mode)
             return True
         except:
-            print("S3D file not found")
+            print("File not found")
             return False
 
     def closeFile(self):
@@ -608,6 +608,22 @@ class S3DFile(BinaryFile):
 
 class B3DFile(BinaryFile):
 
+    def addBone(self, object, boneName):
+        bpy.context.scene.objects.active = object
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        bpy.ops.armature.bone_primitive_add(name=boneName)
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+
+    def editBonePosition(self, object, part, boneName, position):
+        bpy.context.scene.objects.active = object
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        if part == 'head':
+            object.data.edit_bones[boneName].head = position
+        elif part == 'tail':
+            object.data.edit_bones[boneName].tail = position
+        bpy.ops.armature.bone_primitive_add(name=boneName)
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+
     def open(self, path, getB3D):
 
         ####################
@@ -634,14 +650,22 @@ class B3DFile(BinaryFile):
             b3dBoneId = self.readFromFile("i", 1)[0]
             b3dBoneCount = self.readFromFile("i", 1)[0]
 
+            rig = bpy.data.objects.new(str(b3dBoneId), bpy.data.armatures.new(str(b3dBoneId)))
+            bpy.context.scene.objects.link(rig)
+
+            rig.data.draw_type = 'STICK'
+
             for b in range(b3dBoneCount):
 
                 boneName = self.readFromFile("c")
+                self.addBone(rig, boneName)
 
                 ## bone position
                 bonePositionX = self.readFromFile("f", 1)[0]
                 bonePositionY = self.readFromFile("f", 1)[0]
                 bonePositionZ = self.readFromFile("f", 1)[0]
+
+                self.editBonePosition(rig, 'head', boneName, (bonePositionX, bonePositionZ, bonePositionY))
 
                 ## bone rotiation
                 boneRotationW = self.readFromFile("f", 1)[0]
@@ -653,6 +677,8 @@ class B3DFile(BinaryFile):
                 boneOriginalPositionX = self.readFromFile("f", 1)[0]
                 boneOriginalPositionY = self.readFromFile("f", 1)[0]
                 boneOriginalPositionZ = self.readFromFile("f", 1)[0]
+
+                self.editBonePosition(rig, 'tail', boneName, (boneOriginalPositionX, boneOriginalPositionZ, boneOriginalPositionY))
 
                 ## bone original rotiation
                 boneOriginalRotationW = self.readFromFile("f", 1)[0]
@@ -667,9 +693,9 @@ class B3DFile(BinaryFile):
 
                 boneParentId = self.readFromFile("i", 1)
 
-            self.b3dBoneHelperCount = self.readFromFile("i", 1)[0]
+            b3dBoneHelperCount = self.readFromFile("i", 1)[0]
 
-            for h in range(self.b3dBoneHelperCount):
+            for h in range(b3dBoneHelperCount):
 
                 helperName = self.readFromFile("c")
                 helperParent = self.readFromFile("c")
