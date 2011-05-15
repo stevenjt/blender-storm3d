@@ -27,6 +27,7 @@ import struct
 import os
 
 class BinaryFile():
+
     def openFile(self, path, mode):
 
         ## Get the file name and directory from the path string
@@ -35,7 +36,7 @@ class BinaryFile():
             slash = "/"
         else:
             ## Probably Windows, use backslash
-           slash = "\\"
+            slash = "\\"
 
         directory = path.split(slash)[:-1]
         self.fileName = path.split(slash)[-1].split(".")[0]
@@ -188,23 +189,27 @@ class S3DFile(BinaryFile):
             mat.diffuse_color[1] = materialColour[1]
             mat.diffuse_color[2] = materialColour[2]
 
-            ## set material to use transparency
-            mat.use_transparency = True
-            mat.alpha = 0
-
             tex = bpy.data.textures.new(materialName, type = 'IMAGE')
             texSlot = mat.texture_slots.add()
             texSlot.texture = tex
             texSlot.texture_coords = 'UV'
 
-            ## set the texture to use the alpha as transparency
-            texSlot.use_map_alpha = True
             try:
                 image = bpy.data.images.load(self.getDirectory() + textures[materialTextureBase])
                 tex.image = image
                 print("Image loaded from: " + textures[materialTextureBase])
+                imageLoaded = True
             except:
                 print("Could not load image id: " + str(materialTextureBase))
+                imageLoaded = False
+
+            if imageLoaded == True:
+                ## set material to use transparency
+                mat.use_transparency = True
+                mat.alpha = 0
+
+                ## set the texture to use the alpha as transparency
+                texSlot.use_map_alpha = True
 
             ## append material name to the materials list
             materials.append(mat)
