@@ -324,9 +324,10 @@ class S3DFile(BinaryFile):
             ## Set the material in Blender
             mesh.materials.append(materials[materialIndex])
 
-        bpy.ops.object.select_all(action = 'SELECT')
-        bpy.ops.object.shade_smooth()
-        bpy.ops.object.select_all(action = 'DESELECT')
+        if (objectCount > 0):
+            bpy.ops.object.select_all(action = 'SELECT')
+            bpy.ops.object.shade_smooth()
+            bpy.ops.object.select_all(action = 'DESELECT')
 
         ## for all the lights in the file
         for l in range(lightCount):
