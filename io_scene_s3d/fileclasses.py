@@ -309,6 +309,7 @@ class S3DFile(BinaryFile):
                 i.uv3 = uvTex[faces[face].vertices[2]]
 
             bpy.ops.object.mode_set(mode = 'EDIT')
+            bpy.ops.mesh.remove_doubles()
             bpy.ops.mesh.normals_make_consistent()
             bpy.ops.object.mode_set(mode = 'OBJECT')
 
