@@ -330,6 +330,9 @@ class S3DFile(BinaryFile):
             bpy.ops.object.shade_smooth()
             bpy.ops.object.select_all(action = 'DESELECT')
 
+
+
+
         ## for all the lights in the file
         for l in range(lightCount):
             lightName = self.readFromFile("c")
@@ -622,8 +625,28 @@ class B3DFile(BinaryFile):
             object.data.edit_bones[boneName].head = position
         elif part == 'tail':
             object.data.edit_bones[boneName].tail = position
-        bpy.ops.armature.bone_primitive_add(name=boneName)
         bpy.ops.object.mode_set(mode = 'OBJECT')
+
+    def connectBones(self, object, bone1, bone2):
+        bpy.context.scene.objects.active = object
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        bpy.ops.armature.select_all(action = 'DESELECT')
+        bone1Object = object.data.edit_bones[bone1]
+        bone2Object = object.data.edit_bones[bone2]
+        object.data.edit_bones.active = bone1Object
+        bone2Object.select = True
+        bone2Object.select_head = True
+        bone2Object.select_tail= True
+        bpy.ops.armature.parent_set(type = 'CONNECTED')
+        bpy.ops.armature.select_all(action = 'DESELECT')
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+
+    def addArmatureModifiers(self, object):
+        for o in bpy.data.objects:
+            if o.type == 'MESH':
+                bpy.context.scene.objects.active = o
+                bpy.ops.object.modifier_add(type = 'ARMATURE')
+                o.modifiers['Armature'].object = object
 
     def open(self, path, getB3D):
 
@@ -655,18 +678,21 @@ class B3DFile(BinaryFile):
             bpy.context.scene.objects.link(rig)
 
             rig.data.draw_type = 'STICK'
+            rig.show_x_ray = True
+
+            bones = []
+            bonesAndParents = []
 
             for b in range(b3dBoneCount):
 
                 boneName = self.readFromFile("c")
-                self.addBone(rig, boneName)
+                self.addBone(rig, str(boneName))
+                bones.append(boneName)
 
                 ## bone position
                 bonePositionX = self.readFromFile("f", 1)[0]
                 bonePositionY = self.readFromFile("f", 1)[0]
                 bonePositionZ = self.readFromFile("f", 1)[0]
-
-                self.editBonePosition(rig, 'head', boneName, (bonePositionX, bonePositionZ, bonePositionY))
 
                 ## bone rotiation
                 boneRotationW = self.readFromFile("f", 1)[0]
@@ -679,7 +705,6 @@ class B3DFile(BinaryFile):
                 boneOriginalPositionY = self.readFromFile("f", 1)[0]
                 boneOriginalPositionZ = self.readFromFile("f", 1)[0]
 
-                self.editBonePosition(rig, 'tail', boneName, (boneOriginalPositionX, boneOriginalPositionZ, boneOriginalPositionY))
 
                 ## bone original rotiation
                 boneOriginalRotationW = self.readFromFile("f", 1)[0]
@@ -692,7 +717,22 @@ class B3DFile(BinaryFile):
                 boneLength = self.readFromFile("f", 1)
                 boneThickness = self.readFromFile("f", 1)
 
-                boneParentId = self.readFromFile("i", 1)
+                boneParentId = self.readFromFile("i", 1)[0]
+
+                parentName = bones[boneParentId]
+
+                self.editBonePosition(rig, 'tail', boneName, (boneOriginalPositionX + 0.001, boneOriginalPositionZ, boneOriginalPositionY))
+                self.editBonePosition(rig, 'head', boneName, (boneOriginalPositionX, boneOriginalPositionZ, boneOriginalPositionY))
+                if boneParentId != -1:
+                    self.editBonePosition(rig, 'head', boneName, rig.data.bones[bones[boneParentId]].tail)
+
+                bonesAndParents.append((boneName, boneParentId))
+
+            for b in bonesAndParents:
+                if b[1] != -1:
+                    self.connectBones(rig, bones[b[1]], b[0])
+
+            self.addArmatureModifiers(rig)
 
             b3dBoneHelperCount = self.readFromFile("i", 1)[0]
 
