@@ -654,12 +654,15 @@ class B3DFile(BinaryFile):
         bpy.ops.armature.select_all(action = 'DESELECT')
         bpy.ops.object.mode_set(mode = 'OBJECT')
 
-    def addArmatureModifiers(self, object):
+    def prepareMesh(self, object, bones):
         for o in bpy.data.objects:
             if o.type == 'MESH':
                 bpy.context.scene.objects.active = o
                 bpy.ops.object.modifier_add(type = 'ARMATURE')
                 o.modifiers['Armature'].object = object
+
+                for v in o.vertex_groups:
+                    v.name = bones[v.name]
 
     def open(self, path, getB3D):
 
@@ -694,13 +697,16 @@ class B3DFile(BinaryFile):
             rig.show_x_ray = True
 
             bones = []
+            bonesAndId = {}
             bonesAndParents = []
 
-            for b in range(b3dBoneCount):
+            for i, b in enumerate(range(b3dBoneCount)):
 
                 boneName = self.readFromFile("c")
+
                 self.addBone(rig, str(boneName))
                 bones.append(boneName)
+                bonesAndId[str(i)] = boneName
 
                 ## bone position
                 bonePositionX = self.readFromFile("f", 1)[0]
@@ -745,7 +751,7 @@ class B3DFile(BinaryFile):
                 if b[1] != -1:
                     self.connectBones(rig, bones[b[1]], b[0])
 
-            self.addArmatureModifiers(rig)
+            self.prepareMesh(rig, bonesAndId)
 
             b3dBoneHelperCount = self.readFromFile("i", 1)[0]
 
