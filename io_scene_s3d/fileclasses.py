@@ -286,17 +286,33 @@ class S3DFile(BinaryFile):
                 face = self.readFromFile("H", 3)
                 faces.append(face)
 
+            bonesList = {}
             if objectWeights == True:
                 ## For all the weights in the object
                 for n in range(objectVertexAmount):
-                    bone1 = self.readFromFile("i", 1)[0]
-                    bone2 = self.readFromFile("i", 1)[0]
+                    bone1 = str(self.readFromFile("i", 1)[0])
+                    bone2 = str(self.readFromFile("i", 1)[0])
                     weight1 = self.readFromFile("B", 1)
                     weight2 = self.readFromFile("B", 1)
+
+                    ## Create the vertex group if it does not already exist.
+                    if obj.vertex_groups.get(bone1) == None:
+                        obj.vertex_groups.new(bone1)
+
+                    ## Put the vertex data into the dictionary.
+                    ## FIXME: Not the most elegant way to do this.
+                    try:
+                        bonesList[bone1].append(n)
+                    except:
+                        bonesList[bone1] = [n]
 
             ## Send data to the mesh in Blender
             mesh.from_pydata(vertex, [], faces)
             mesh.update()
+
+            ## Put weight data into the vertex groups
+            for b in bonesList.keys():
+                obj.vertex_groups[b].add(bonesList[b], 1.0, 'REPLACE')
 
             bpy.context.scene.objects.active = obj
             bpy.ops.mesh.uv_texture_add()
@@ -329,9 +345,6 @@ class S3DFile(BinaryFile):
             bpy.ops.object.select_all(action = 'SELECT')
             bpy.ops.object.shade_smooth()
             bpy.ops.object.select_all(action = 'DESELECT')
-
-
-
 
         ## for all the lights in the file
         for l in range(lightCount):
