@@ -300,11 +300,13 @@ class S3DFile(BinaryFile):
                         obj.vertex_groups.new(bone1)
 
                     ## Put the vertex data into the dictionary.
-                    ## FIXME: Not the most elegant way to do this.
-                    try:
-                        bonesList[bone1].append(n)
-                    except:
-                        bonesList[bone1] = [n]
+                    if bone1 in bonesList:
+                        if weight1 in bonesList[bone1]:
+                            bonesList[bone1][weight1].append(n)
+                        else:
+                            bonesList[bone1][weight1] = [n]
+                    else:
+                        bonesList[bone1] = {}
 
             ## Send data to the mesh in Blender
             mesh.from_pydata(vertex, [], faces)
@@ -312,7 +314,8 @@ class S3DFile(BinaryFile):
 
             ## Put weight data into the vertex groups
             for b in bonesList.keys():
-                obj.vertex_groups[b].add(bonesList[b], 1.0, 'REPLACE')
+                for w in bonesList[b].keys():
+                    obj.vertex_groups[b].add(bonesList[b][w], (w / 100), 'REPLACE')
 
             bpy.context.scene.objects.active = obj
             bpy.ops.mesh.uv_texture_add()
@@ -724,7 +727,6 @@ class B3DFile(BinaryFile):
                 boneOriginalPositionY = self.readFromFile("f", 1)[0]
                 boneOriginalPositionZ = self.readFromFile("f", 1)[0]
 
-
                 ## bone original rotiation
                 boneOriginalRotationW = self.readFromFile("f", 1)[0]
                 boneOriginalRotationX = self.readFromFile("f", 1)[0]
@@ -733,8 +735,8 @@ class B3DFile(BinaryFile):
 
                 boneMaxAngles = self.readFromFile("f", 6)
 
-                boneLength = self.readFromFile("f", 1)
-                boneThickness = self.readFromFile("f", 1)
+                boneLength = self.readFromFile("f", 1)[0]
+                boneThickness = self.readFromFile("f", 1)[0]
 
                 boneParentId = self.readFromFile("i", 1)[0]
 
