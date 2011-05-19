@@ -35,7 +35,8 @@ bl_info = {
     "category": "Import-Export"}
 
 import bpy
-from . import fileclasses
+from .S3DFile import S3DFile
+from .B3DFile import B3DFile
 from bpy.props import StringProperty, BoolProperty
 from io_utils import ImportHelper, ExportHelper
 
@@ -52,9 +53,9 @@ class ImportS3D(bpy.types.Operator, ImportHelper):
     switchGLSL = BoolProperty(name = "Use GLSL", description = "Allow the script to switch to GLSL shading", default = True)
 
     def execute(self, context):
-        s3d = fileclasses.S3DFile()
+        s3d = S3DFile()
         s3d.open(self.filepath, self.switchGLSL)
-        b3d = fileclasses.B3DFile()
+        b3d = B3DFile()
         b3d.open(self.filepath, self.getB3D)
         return {'FINISHED'}
 
@@ -70,7 +71,7 @@ class ExportS3D(bpy.types.Operator, ExportHelper):
     getB3D = BoolProperty(name = "Export B3D (Bones)", description = "Export data to a B3D file", default = True)
 
     def execute(self, context):
-        s3d = fileclasses.S3DFile()
+        s3d = S3DFile()
         s3d.write(self.filepath)
         return {'FINISHED'}
 
