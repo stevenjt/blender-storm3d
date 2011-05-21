@@ -158,12 +158,24 @@ class B3DFile(BinaryFile):
 
             b3dBoneHelperCount = self.readFromFile("i", 1)[0]
 
+            def getHelperType(id):
+                if id == 0:
+                    return "POINT"
+                elif id == 1:
+                    return "VECTOR"
+                elif id == 2:
+                    return "BOX"
+                elif id == 3:
+                    return "CAMERA"
+                elif id == 4:
+                    return "SPHERE"
+
             for h in range(b3dBoneHelperCount):
 
                 helperName = self.readFromFile("c")
                 helperParent = self.readFromFile("c")
 
-                helperType = self.readFromFile("i", 1)
+                helperType = self.readFromFile("i", 1)[0]
 
                 ## helper position
                 helperPositionX = self.readFromFile("f", 1)[0]
