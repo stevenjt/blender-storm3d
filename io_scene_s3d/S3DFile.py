@@ -371,10 +371,13 @@ class S3DFile(BinaryFile):
             ## texDynamic
             self.writeToFile("B", 0)
 
+        materialsIdList = []
         for m in materials:
 
             ## write material name
             self.writeToFile("s", m.name)
+
+            materialsIdList.append(m.name)
 
             ## write the details
 
@@ -450,7 +453,7 @@ class S3DFile(BinaryFile):
                 self.writeToFile("f", 1.0)
 
         for o in objects:
-
+            bpy.context.scene.objects.active = o
             bpy.ops.object.mode_set(mode = 'EDIT')
             bpy.ops.mesh.select_all(action = 'SELECT')
             bpy.ops.mesh.quads_convert_to_tris()
@@ -464,7 +467,8 @@ class S3DFile(BinaryFile):
             self.writeToFile("s", "")
 
             ## materialIndex
-            self.writeToFile("H", 0)
+            materialId = materialsIdList.index(o.material_slots[0].name)
+            self.writeToFile("H", materialId)
 
             ## object position
             self.writeToFile("f", o.location[0])
@@ -549,6 +553,11 @@ class S3DFile(BinaryFile):
             if objectWeights == True:
                 pass
                 ## objectWeights
+
+            bpy.ops.object.mode_set(mode = 'EDIT')
+            bpy.ops.mesh.select_all(action = 'SELECT')
+            bpy.ops.mesh.flip_normals()
+            bpy.ops.object.mode_set(mode = 'OBJECT')
 
         ## Close the S3D file
         self.closeFile()
