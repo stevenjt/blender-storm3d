@@ -509,6 +509,13 @@ class S3DFile(BinaryFile):
             for v in vertex:
                 vertexUVs.append(v)
 
+            ## If there is no UVs, then automatically generate some.
+            if len(o.data.uv_textures) == 0:
+                bpy.context.scene.objects.active = o
+                bpy.ops.object.mode_set(mode = 'EDIT')
+                bpy.ops.uv.unwrap(method = 'ANGLE_BASED', fill_holes = True, correct_aspect = True)
+                bpy.ops.object.mode_set(mode = 'OBJECT')
+
             for i, face in enumerate(o.data.uv_textures.active.data):
                 vertexUVs[faces[i].vertices[0]] = face.uv1
                 vertexUVs[faces[i].vertices[1]] = face.uv2
@@ -542,11 +549,6 @@ class S3DFile(BinaryFile):
             if objectWeights == True:
                 pass
                 ## objectWeights
-
-            bpy.ops.object.mode_set(mode = 'EDIT')
-            bpy.ops.mesh.select_all(action = 'SELECT')
-            bpy.ops.mesh.flip_normals()
-            bpy.ops.object.mode_set(mode = 'OBJECT')
 
         ## Close the S3D file
         self.closeFile()
