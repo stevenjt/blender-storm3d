@@ -355,9 +355,13 @@ class S3DFile(BinaryFile):
         boneid = 0
         self.writeToFile("i", boneid)
 
+        texturesIdList = []
         for t in textures:
+
             ## textureName
             self.writeToFile("s", t.image.name)
+
+            texturesIdList.append(t.image.name)
 
             ## texId
             self.writeToFile("L", 0)
@@ -379,10 +383,10 @@ class S3DFile(BinaryFile):
 
             materialsIdList.append(m.name)
 
-            ## write the details
-
             ## materialTextureBase
-            self.writeToFile("h", 0)
+            textureBase = bpy.data.textures[m.texture_slots[0].name].image.name
+            textureId = texturesIdList.index(textureBase)
+            self.writeToFile("h", textureId)
 
             ## materialTextureBase2
             materialTextureBase2 = -1
