@@ -119,13 +119,16 @@ class S3DFile(BinaryFile):
             texSlot.texture = tex
             texSlot.texture_coords = 'UV'
 
-            try:
-                image = bpy.data.images.load(self.getDirectory() + textures[materialTextureBase])
-                tex.image = image
-                print("Image loaded from: " + textures[materialTextureBase])
-                imageLoaded = True
-            except:
-                print("Could not load image id: " + str(materialTextureBase))
+            if materialTextureBase != -1:
+                try:
+                    image = bpy.data.images.load(self.getDirectory() + textures[materialTextureBase])
+                    tex.image = image
+                    print("Image loaded from: " + textures[materialTextureBase])
+                    imageLoaded = True
+                except:
+                    print("Could not load image id: " + str(materialTextureBase))
+                    imageLoaded = False
+            else:
                 imageLoaded = False
 
             if imageLoaded == True:
@@ -384,8 +387,11 @@ class S3DFile(BinaryFile):
             materialsIdList.append(m.name)
 
             ## materialTextureBase
-            textureBase = bpy.data.textures[m.texture_slots[0].name].image.name
-            textureId = texturesIdList.index(textureBase)
+            if m.texture_slots[0] != None:
+                textureBase = bpy.data.textures[m.texture_slots[0].name].image.name
+                textureId = texturesIdList.index(textureBase)
+            else:
+                textureId = -1
             self.writeToFile("h", textureId)
 
             ## materialTextureBase2
