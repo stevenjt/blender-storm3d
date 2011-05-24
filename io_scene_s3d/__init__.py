@@ -51,10 +51,11 @@ class ImportS3D(bpy.types.Operator, ImportHelper):
 
     getB3D = BoolProperty(name = "Import B3D (Bones)", description = "Import data from the B3D file if present", default = False)
     switchGLSL = BoolProperty(name = "Use GLSL", description = "Allow the script to switch to GLSL shading", default = True)
+    removeDoubles = BoolProperty(name = "Remove doubles from mesh", description = "Removes doubles from the mesh. This causes problem UVs on s3d export.", default = True)
 
     def execute(self, context):
         s3d = S3DFile()
-        s3d.open(self.filepath, self.switchGLSL)
+        s3d.open(self.filepath, self.switchGLSL, self.removeDoubles)
         b3d = B3DFile()
         b3d.open(self.filepath, self.getB3D)
         return {'FINISHED'}
