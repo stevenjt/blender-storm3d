@@ -371,10 +371,13 @@ class S3DFile(BinaryFile):
         texturesIdList = []
         for t in allTextures:
             if t.type == 'IMAGE':
-                ## textureName
-                self.writeToFile("s", t.image.name)
 
-                texturesIdList.append(t.image.name)
+                textureFileName = t.image.filepath.split("/")[-1]
+
+                ## textureName
+                self.writeToFile("s", textureFileName)
+
+                texturesIdList.append(textureFileName)
 
                 ## texId
                 self.writeToFile("L", 0)
@@ -400,7 +403,7 @@ class S3DFile(BinaryFile):
 
             ## materialTextureBase
             if texSlot != None and bpy.data.textures[texSlot.name].type == 'IMAGE':
-                textureBase = bpy.data.textures[texSlot.name].image.name
+                textureBase = bpy.data.textures[texSlot.name].image.filepath.split("/")[-1]
                 textureId = texturesIdList.index(textureBase)
             else:
                 textureId = -1
