@@ -86,7 +86,7 @@ class S3DFile(BinaryFile):
             materialColour = self.readFromFile("f", 3)
             materialSelfIllum = self.readFromFile("f", 3)
             materialSpecular = self.readFromFile("f", 3)
-            materialSpecularSharpness = self.readFromFile("f", 1)
+            materialSpecularSharpness = self.readFromFile("f", 1)[0]
 
             materialDoubleSided = self.readFromFile("B", 1)
             materialWireframe = self.readFromFile("B", 1)
@@ -113,6 +113,10 @@ class S3DFile(BinaryFile):
             mat.diffuse_color[0] = materialColour[0]
             mat.diffuse_color[1] = materialColour[1]
             mat.diffuse_color[2] = materialColour[2]
+
+            mat.specular_color[0] = materialSpecular[0]
+            mat.specular_color[1] = materialSpecular[1]
+            mat.specular_color[2] = materialSpecular[2]
 
             tex = bpy.data.textures.new(materialName, type = 'IMAGE')
             texSlot = mat.texture_slots.add()
@@ -427,9 +431,9 @@ class S3DFile(BinaryFile):
             self.writeToFile("f", 0.0)
 
             ## materialSpecular
-            self.writeToFile("f", 0.0)
-            self.writeToFile("f", 0.0)
-            self.writeToFile("f", 0.0)
+            self.writeToFile("f", m.specular_color[0])
+            self.writeToFile("f", m.specular_color[1])
+            self.writeToFile("f", m.specular_color[2])
 
             ## materialSpecularSharpness
             self.writeToFile("f", 1.0)
