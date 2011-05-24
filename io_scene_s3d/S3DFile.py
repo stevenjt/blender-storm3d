@@ -391,9 +391,11 @@ class S3DFile(BinaryFile):
 
             materialsIdList.append(m.name)
 
+            texSlot = m.texture_slots[0]
+
             ## materialTextureBase
-            if m.texture_slots[0] != None:
-                textureBase = bpy.data.textures[m.texture_slots[0].name].image.name
+            if texSlot != None and bpy.data.textures[texSlot.name].type == 'IMAGE':
+                textureBase = bpy.data.textures[texSlot.name].image.name
                 textureId = texturesIdList.index(textureBase)
             else:
                 textureId = -1
