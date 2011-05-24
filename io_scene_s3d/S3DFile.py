@@ -340,8 +340,13 @@ class S3DFile(BinaryFile):
         self.writeToFile("s", file_type, False)
         self.writeToFile("i", version)
 
-        textures = bpy.data.textures
-        self.writeToFile("H", len(textures))
+        allTextures = bpy.data.textures
+        textures = 0
+        for t in allTextures:
+            if t.type == 'IMAGE':
+                textures += 1
+
+        self.writeToFile("H", textures)
 
         materials = bpy.data.materials
         self.writeToFile("H", len(materials))
@@ -359,24 +364,24 @@ class S3DFile(BinaryFile):
         self.writeToFile("i", boneid)
 
         texturesIdList = []
-        for t in textures:
+        for t in allTextures:
+            if t.type == 'IMAGE':
+                ## textureName
+                self.writeToFile("s", t.image.name)
 
-            ## textureName
-            self.writeToFile("s", t.image.name)
+                texturesIdList.append(t.image.name)
 
-            texturesIdList.append(t.image.name)
+                ## texId
+                self.writeToFile("L", 0)
 
-            ## texId
-            self.writeToFile("L", 0)
+                ## texStartFrame
+                self.writeToFile("H", 0)
 
-            ## texStartFrame
-            self.writeToFile("H", 0)
+                ## texFrameChangeTime
+                self.writeToFile("H", 0)
 
-            ## texFrameChangeTime
-            self.writeToFile("H", 0)
-
-            ## texDynamic
-            self.writeToFile("B", 0)
+                ## texDynamic
+                self.writeToFile("B", 0)
 
         materialsIdList = []
         for m in materials:
