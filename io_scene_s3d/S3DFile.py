@@ -259,10 +259,16 @@ class S3DFile(BinaryFile):
                 i.uv2 = uvTex[faces[face].vertices[1]]
                 i.uv3 = uvTex[faces[face].vertices[2]]
 
+
             bpy.ops.object.mode_set(mode = 'EDIT')
+            bpy.ops.mesh.select_all(action = 'DESELECT')
+            bpy.ops.mesh.select_non_manifold()
+            bpy.ops.mesh.mark_seam(clear = False)
             if removeDoubles == True:
                 bpy.ops.mesh.remove_doubles()
+            bpy.ops.mesh.select_all(action = 'SELECT')
             bpy.ops.mesh.normals_make_consistent()
+            bpy.ops.mesh.select_all(action = 'DESELECT')
             bpy.ops.object.mode_set(mode = 'OBJECT')
 
             if switchGLSL == True:
