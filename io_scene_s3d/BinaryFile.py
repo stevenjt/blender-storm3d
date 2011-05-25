@@ -28,16 +28,19 @@ import os
 
 class BinaryFile():
 
-    def openFile(self, path, mode):
-
-        ## Get the file name and directory from the path string
+    def getFileSystemSlash(self):
         if os.name == "posix":
             ## POSIX, use forward slash
             slash = "/"
         else:
             ## Probably Windows, use backslash
             slash = "\\"
+        return slash
 
+    def openFile(self, path, mode):
+        ## Get the file name and directory from the path string
+
+        slash = self.getFileSystemSlash()
         directory = path.split(slash)[:-1]
         self.fileName = path.split(slash)[-1].split(".")[0]
         self.directory = slash.join(directory) + slash
