@@ -540,7 +540,6 @@ class S3DFile(BinaryFile):
 
             ## If there is no UVs, then automatically generate some.
             if len(o.data.uv_textures) == 0:
-                bpy.context.scene.objects.active = o
                 bpy.ops.object.mode_set(mode = 'EDIT')
                 bpy.ops.uv.unwrap(method = 'ANGLE_BASED', fill_holes = True, correct_aspect = True)
                 bpy.ops.object.mode_set(mode = 'OBJECT')
@@ -578,6 +577,15 @@ class S3DFile(BinaryFile):
             if objectWeights == True:
                 pass
                 ## objectWeights
+
+            ## Convert UV seams to edge sharps
+            for e in o.data.edges:
+                e.use_edge_sharp = e.use_seam
+
+            ## Use a edge split modifier to split the seams/sharps
+            edgeSplit = o.modifiers.new(name = 'EdgeSplit', type = 'EDGE_SPLIT')
+            edgeSplit.use_edge_angle = False
+            bpy.ops.object.modifier_apply(apply_as = 'DATA', modifier = edgeSplit.name)
 
             bpy.ops.object.mode_set(mode = 'EDIT')
             bpy.ops.mesh.select_all(action = 'SELECT')
