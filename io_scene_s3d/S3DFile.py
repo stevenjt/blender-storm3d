@@ -92,7 +92,9 @@ class S3DFile(BinaryFile):
             materialWireframe = self.readFromFile("B", 1)
 
             materialReflectionTexgen = self.readFromFile("i", 1)
-            materialAlphablendType = self.readFromFile("i", 1)
+
+            ## materialAlphaBlendType. When 0 do not use image alpha, when 2 use image alpha.
+            materialAlphaBlendType = self.readFromFile("i", 1)[0]
 
             materialTransparency = self.readFromFile("f", 1)
 
@@ -135,7 +137,7 @@ class S3DFile(BinaryFile):
             else:
                 imageLoaded = False
 
-            if imageLoaded == True:
+            if imageLoaded == True and materialAlphaBlendType == 2:
                 ## set material to use transparency
                 mat.use_transparency = True
                 mat.alpha = 0
@@ -457,8 +459,14 @@ class S3DFile(BinaryFile):
             ## materialReflectionTexgen
             self.writeToFile("i", 0)
 
-            ## materialAlphablendType
-            self.writeToFile("i", 0)
+            ## materialAlphaBlendType
+
+            ## set the alpha type based on the setting in Blender
+            if m.use_transparency == True:
+                materialAlphaBlendType = 2
+            else:
+                materialAlphaBlendType = 0
+            self.writeToFile("i", materialAlphaBlendType)
 
             ## materialTransparency
             self.writeToFile("f", 0.0)
