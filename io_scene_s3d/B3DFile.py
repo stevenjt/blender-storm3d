@@ -44,7 +44,7 @@ class B3DFile(BinaryFile):
             object.data.edit_bones[boneName].tail = position
         bpy.ops.object.mode_set(mode = 'OBJECT')
 
-    def connectBones(self, object, bone1, bone2):
+    def parentBones(self, object, bone1, bone2):
         bpy.context.scene.objects.active = object
         bpy.ops.object.mode_set(mode = 'EDIT')
         bpy.ops.armature.select_all(action = 'DESELECT')
@@ -54,7 +54,7 @@ class B3DFile(BinaryFile):
         bone2Object.select = True
         bone2Object.select_head = True
         bone2Object.select_tail= True
-        bpy.ops.armature.parent_set(type = 'CONNECTED')
+        bpy.ops.armature.parent_set(type = 'OFFSET')
         bpy.ops.armature.select_all(action = 'DESELECT')
         bpy.ops.object.mode_set(mode = 'OBJECT')
 
@@ -102,13 +102,12 @@ class B3DFile(BinaryFile):
 
             bones = []
             bonesAndId = {}
-            bonesAndParents = []
 
             for i, b in enumerate(range(b3dBoneCount)):
 
-                boneName = self.readFromFile("c")
+                boneName = str(self.readFromFile("c"))
 
-                self.addBone(rig, str(boneName))
+                self.addBone(rig, boneName)
                 bones.append(boneName)
                 bonesAndId[str(i)] = boneName
 
@@ -141,18 +140,12 @@ class B3DFile(BinaryFile):
 
                 boneParentId = self.readFromFile("i", 1)[0]
 
-                parentName = bones[boneParentId]
-
                 self.editBonePosition(rig, 'tail', boneName, (boneOriginalPositionX + 0.001, boneOriginalPositionZ, boneOriginalPositionY))
                 self.editBonePosition(rig, 'head', boneName, (boneOriginalPositionX, boneOriginalPositionZ, boneOriginalPositionY))
+
                 if boneParentId != -1:
-                    self.editBonePosition(rig, 'head', boneName, rig.data.bones[bones[boneParentId]].tail)
-
-                bonesAndParents.append((boneName, boneParentId))
-
-            for b in bonesAndParents:
-                if b[1] != -1:
-                    self.connectBones(rig, bones[b[1]], b[0])
+                    parent = rig.data.bones[bones[boneParentId]]
+                    self.parentBones(rig, parent.name, boneName)
 
             self.prepareMesh(rig, bonesAndId)
 
