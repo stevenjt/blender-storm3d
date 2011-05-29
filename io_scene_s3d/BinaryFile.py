@@ -63,7 +63,7 @@ class BinaryFile():
         return self.directory
 
     def readFromFile(self, type, number = 0): 
-        if type == "c":
+        if type == "str":
             charString = ''
             char = ''
             while(char != '\x00'):
@@ -71,6 +71,9 @@ class BinaryFile():
                 if char != '\x00':
                     charString += str(char)
             return charString
+        elif type == "c":
+            chars = struct.unpack(number * "c", self.f.read(number))
+            return ''.join(bytes.decode(c) for c in chars)
         elif type == "B":
             return struct.unpack(number * "B", self.f.read(number))[0]
         elif type == "H":

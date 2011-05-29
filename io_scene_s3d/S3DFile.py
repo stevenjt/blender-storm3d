@@ -23,8 +23,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import struct
-import os
 from .BinaryFile import BinaryFile
 
 class S3DFile(BinaryFile):
@@ -37,9 +35,7 @@ class S3DFile(BinaryFile):
 
         self.openFile(path, "rb")
 
-        file_type = ""
-        for x in range(4):
-            file_type += bytes.decode(struct.unpack("c", self.f.read(1))[0])
+        file_type = self.readFromFile("c", 4)
 
         version = self.readFromFile("i", 1)[0]
 
@@ -58,7 +54,7 @@ class S3DFile(BinaryFile):
         for t in range(textureCount):
 
             ## read texture filename
-            textureName = self.readFromFile("c")
+            textureName = self.readFromFile("str")
 
             ## put the texture into the textures list
             textures.append(textureName)
@@ -72,7 +68,7 @@ class S3DFile(BinaryFile):
         for m in range(materialCount):
 
             ## read material name
-            materialName = self.readFromFile("c")
+            materialName = self.readFromFile("str")
 
             ## get the details of the material texture
             materialTextureBase = self.readFromFile("h", 1)[0]
@@ -151,8 +147,8 @@ class S3DFile(BinaryFile):
         ## for all the objects in the file
         for o in range(objectCount):
 
-            objectName = self.readFromFile("c")
-            objectParent = self.readFromFile("c")
+            objectName = self.readFromFile("str")
+            objectParent = self.readFromFile("str")
 
             materialIndex = self.readFromFile("H", 1)[0]
 
@@ -292,8 +288,8 @@ class S3DFile(BinaryFile):
 
         ## for all the lights in the file
         for l in range(lightCount):
-            lightName = self.readFromFile("c")
-            lightParentName = self.readFromFile("c")
+            lightName = self.readFromFile("str")
+            lightParentName = self.readFromFile("str")
 
             lightType = self.readFromFile("i", 1)
             lightLensflareIndex = self.readFromFile("i", 1)
@@ -315,8 +311,8 @@ class S3DFile(BinaryFile):
 
         ## for all the helpers in the file
         for h in range(helperCount):
-            helpName = self.readFromFile("c")
-            helpParentName = self.readFromFile("c")
+            helpName = self.readFromFile("str")
+            helpParentName = self.readFromFile("str")
 
             helpType = self.readFromFile("i", 1)
             helpPosition = self.readFromFile("f", 3)

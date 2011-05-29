@@ -23,8 +23,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import struct
-import os
 from .BinaryFile import BinaryFile
 
 class B3DFile(BinaryFile):
@@ -87,9 +85,7 @@ class B3DFile(BinaryFile):
                 print("B3D file not found")
 
         if b3dLoaded == True:
-            b3dfile_type = ""
-            for x in range(5):
-                b3dfile_type += bytes.decode(struct.unpack("c", self.f.read(1))[0])
+            b3dFileType = self.readFromFile("c", 5)
 
             b3dBoneId = self.readFromFile("i", 1)[0]
             b3dBoneCount = self.readFromFile("i", 1)[0]
@@ -105,7 +101,7 @@ class B3DFile(BinaryFile):
 
             for i, b in enumerate(range(b3dBoneCount)):
 
-                boneName = str(self.readFromFile("c"))
+                boneName = str(self.readFromFile("str"))
 
                 self.addBone(rig, boneName)
                 bones.append(boneName)
@@ -165,8 +161,8 @@ class B3DFile(BinaryFile):
 
             for h in range(b3dBoneHelperCount):
 
-                helperName = self.readFromFile("c")
-                helperParent = self.readFromFile("c")
+                helperName = self.readFromFile("str")
+                helperParent = self.readFromFile("str")
 
                 helperType = self.readFromFile("i", 1)[0]
 
