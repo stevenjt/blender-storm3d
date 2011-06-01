@@ -540,7 +540,10 @@ class S3DFile(BinaryFile):
             self.writeToFile("B", 0)
 
             ## objectWeights
-            objectWeights = 0
+            if len(o.vertex_groups) > 0:
+                objectWeights = 1
+            else:
+                objectWeights = 0
             self.writeToFile("B", objectWeights)
 
             vertexUVs = []
@@ -585,8 +588,23 @@ class S3DFile(BinaryFile):
                 self.writeToFile("H", fa.vertices[2])
 
             if objectWeights == True:
-                pass
-                ## objectWeights
+                for v in vertex:
+
+                    if len(v.groups) > 0:
+                        boneVertexGroup = int(o.vertex_groups[v.groups[0].group].name)
+                        boneVertexWeight = int(v.groups[0].weight * 100)
+                    else:
+                        boneVertexGroup = 0
+                        boneVertexWeight = 0
+
+                    ## bone1
+                    bone1 = self.writeToFile("i", boneVertexGroup)
+                    ## bone2
+                    bone2 = self.writeToFile("i", boneVertexGroup)
+                    ## weight1
+                    weight1 = self.writeToFile("B", boneVertexWeight)
+                    ## weight2
+                    weight2 = self.writeToFile("B", boneVertexWeight)
 
             ## Convert UV seams to edge sharps
             for e in o.data.edges:
