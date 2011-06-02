@@ -591,7 +591,15 @@ class S3DFile(BinaryFile):
                 for v in vertex:
 
                     if len(v.groups) > 0:
-                        boneVertexGroup = int(o.vertex_groups[v.groups[0].group].name)
+                        vertexGroupName = o.vertex_groups[v.groups[0].group].name
+
+                        ## Check if the bones have already have been renamed by B3D importing. Split to get the id if required.
+                        if ":" in vertexGroupName:
+                            vertexGroupId = vertexGroupName.split(":")[1]
+                        else:
+                            vertexGroupId = vertexGroupName
+
+                        boneVertexGroup = int(vertexGroupId)
                         boneVertexWeight = int(v.groups[0].weight * 100)
                     else:
                         boneVertexGroup = 0

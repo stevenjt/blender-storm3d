@@ -103,6 +103,9 @@ class B3DFile(BinaryFile):
 
                 boneName = str(self.readFromFile("str"))
 
+                ## Bones are named with both their name and id - 'bonename:id'
+                boneName = boneName + ":" + str(i)
+
                 self.addBone(rig, boneName)
                 bones.append(boneName)
                 bonesAndId[str(i)] = boneName
