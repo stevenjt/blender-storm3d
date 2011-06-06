@@ -154,8 +154,9 @@ class S3DFile(BinaryFile):
 
             ## object position
             objectPositionX = self.readFromFile("f", 1)[0]
-            objectPositionY = self.readFromFile("f", 1)[0]
+            ## Y and Z need to be swapped.
             objectPositionZ = self.readFromFile("f", 1)[0]
+            objectPositionY = self.readFromFile("f", 1)[0]
 
             ## object rotation
             objectRotationW = self.readFromFile("f", 1)[0]
@@ -511,8 +512,9 @@ class S3DFile(BinaryFile):
 
             ## object position
             self.writeToFile("f", o.location[0])
-            self.writeToFile("f", o.location[1])
+            ## Y and Z need to be swapped.
             self.writeToFile("f", o.location[2])
+            self.writeToFile("f", o.location[1])
 
             ## object rotation
             self.writeToFile("f", o.rotation_quaternion[1])
