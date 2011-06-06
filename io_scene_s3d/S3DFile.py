@@ -510,7 +510,16 @@ class S3DFile(BinaryFile):
             bpy.ops.mesh.flip_normals()
             bpy.ops.object.mode_set(mode = 'OBJECT')
             bpy.ops.object.rotation_apply()
-            
+
+            ## Convert UV seams to edge sharps
+            for e in o.data.edges:
+                e.use_edge_sharp = e.use_seam
+
+            ## Use a edge split modifier to split the seams/sharps
+            edgeSplit = o.modifiers.new(name = 'EdgeSplit', type = 'EDGE_SPLIT')
+            edgeSplit.use_edge_angle = False
+            bpy.ops.object.modifier_apply(apply_as = 'DATA', modifier = edgeSplit.name)
+
             ## objectName
             self.writeToFile("s", o.name)
             ## objectParent
@@ -631,14 +640,6 @@ class S3DFile(BinaryFile):
                     ## weight2
                     weight2 = self.writeToFile("B", boneVertexWeight)
 
-            ## Convert UV seams to edge sharps
-            for e in o.data.edges:
-                e.use_edge_sharp = e.use_seam
-
-            ## Use a edge split modifier to split the seams/sharps
-            edgeSplit = o.modifiers.new(name = 'EdgeSplit', type = 'EDGE_SPLIT')
-            edgeSplit.use_edge_angle = False
-            bpy.ops.object.modifier_apply(apply_as = 'DATA', modifier = edgeSplit.name)
 
             bpy.ops.object.mode_set(mode = 'EDIT')
             bpy.ops.mesh.select_all(action = 'SELECT')
