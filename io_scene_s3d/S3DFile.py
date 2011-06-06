@@ -38,6 +38,7 @@ class S3DFile(BinaryFile):
         file_type = self.readFromFile("c", 4)
 
         version = self.readFromFile("i", 1)[0]
+        print("S3D file version: " + str(version))
 
         textureCount = self.readFromFile("H", 1)[0]
         materialCount = self.readFromFile("H", 1)[0]
@@ -45,7 +46,10 @@ class S3DFile(BinaryFile):
         lightCount = self.readFromFile("H", 1)[0]
         helperCount = self.readFromFile("H", 1)[0]
 
-        boneid = self.readFromFile("i", 1)[0]
+        if version <= 7:
+            foo = self.readFromFile("H", 1)[0]
+        else:
+            boneid = self.readFromFile("i", 1)[0]
 
         textures = []
         materials = []
@@ -172,13 +176,18 @@ class S3DFile(BinaryFile):
 
             objectNoCollision = self.readFromFile("B", 1)
             objectNoRender = self.readFromFile("B", 1)
-            objectLightObject = self.readFromFile("B", 1)
+
+            if version >= 11:
+                objectLightObject = self.readFromFile("B", 1)
 
             objectVertexAmount = self.readFromFile("H", 1)[0]
             objectFaceAmount = self.readFromFile("H", 1)[0]
 
-            objectLOD = self.readFromFile("B", 1)
-            objectWeights = self.readFromFile("B", 1)
+            if version >= 10:
+                objectLOD = self.readFromFile("B", 1)
+
+            if version >= 7:
+                objectWeights = self.readFromFile("B", 1)
 
             ## Create new mesh in Blender for this object
             mesh = bpy.data.meshes.new(name = str(objectName))
