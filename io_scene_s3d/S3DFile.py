@@ -166,8 +166,9 @@ class S3DFile(BinaryFile):
 
             ## object scale
             objectScaleX = self.readFromFile("f", 1)[0]
-            objectScaleY = self.readFromFile("f", 1)[0]
+            ## Y and Z need to be swapped.
             objectScaleZ = self.readFromFile("f", 1)[0]
+            objectScaleY = self.readFromFile("f", 1)[0]
 
             objectNoCollision = self.readFromFile("B", 1)
             objectNoRender = self.readFromFile("B", 1)
@@ -523,9 +524,10 @@ class S3DFile(BinaryFile):
             self.writeToFile("f", o.rotation_quaternion[0])
 
             ## object scale
-            self.writeToFile("f", 1.0)
-            self.writeToFile("f", 1.0)
-            self.writeToFile("f", 1.0)
+            self.writeToFile("f", o.scale[0])
+            ## Y and Z need to be swapped.
+            self.writeToFile("f", o.scale[1])
+            self.writeToFile("f", o.scale[2])
 
             ## objectNoCollision
             self.writeToFile("B", 0)
