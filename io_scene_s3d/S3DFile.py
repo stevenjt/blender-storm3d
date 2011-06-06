@@ -174,7 +174,7 @@ class S3DFile(BinaryFile):
 
             objectVertexAmount = self.readFromFile("H", 1)[0]
             objectFaceAmount = self.readFromFile("H", 1)[0]
-            
+
             objectLOD = self.readFromFile("B", 1)
             objectWeights = self.readFromFile("B", 1)
 
@@ -376,7 +376,11 @@ class S3DFile(BinaryFile):
         for t in allTextures:
             if t.type == 'IMAGE':
 
-                textureFileName = t.image.filepath.split(self.getFileSystemSlash())[-1]
+                if t.image != None:
+                    textureFileName = t.image.filepath.split(self.getFileSystemSlash())[-1]
+                else:
+                    ## the file name cannot be blank
+                    textureFileName = 'none'
 
                 ## textureName
                 self.writeToFile("s", textureFileName)
@@ -406,7 +410,7 @@ class S3DFile(BinaryFile):
             texSlot = m.texture_slots[0]
 
             ## materialTextureBase
-            if texSlot != None and bpy.data.textures[texSlot.name].type == 'IMAGE':
+            if texSlot != None and bpy.data.textures[texSlot.name].type == 'IMAGE' and bpy.data.textures[texSlot.name].image != None:
                 textureBase = bpy.data.textures[texSlot.name].image.filepath.split(self.getFileSystemSlash())[-1]
                 textureId = texturesIdList.index(textureBase)
             else:
