@@ -69,7 +69,7 @@ class ExportS3D(bpy.types.Operator, ExportHelper):
     filename_ext = ".s3d"
     filter_glob = StringProperty(default = "*.s3d", options = {'HIDDEN'})
 
-    getB3D = BoolProperty(name = "Export B3D (Bones)", description = "Export data to a B3D file", default = True)
+    #getB3D = BoolProperty(name = "Export B3D (Bones)", description = "Export data to a B3D file", default = True)
 
     def execute(self, context):
         s3d = S3DFile()
