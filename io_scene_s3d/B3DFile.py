@@ -42,6 +42,19 @@ class B3DFile(BinaryFile):
             object.data.edit_bones[boneName].tail = position
         bpy.ops.object.mode_set(mode = 'OBJECT')
 
+    def editBoneLength(self, object, boneName, boneLength):
+        bpy.context.scene.objects.active = object
+        bpy.ops.object.mode_set(mode = 'EDIT')
+        object.data.edit_bones[boneName].length = boneLength
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+
+    def editBoneRotation(self, object, boneName, rotation):
+        bpy.context.scene.objects.active = object
+        bpy.ops.object.mode_set(mode = 'POSE')
+        object.pose.bones[boneName].rotation_quaternion = rotation
+        bpy.ops.pose.armature_apply()
+        bpy.ops.object.mode_set(mode = 'OBJECT')
+
     def parentBones(self, object, bone1, bone2):
         bpy.context.scene.objects.active = object
         bpy.ops.object.mode_set(mode = 'EDIT')
@@ -116,10 +129,10 @@ class B3DFile(BinaryFile):
                 bonePositionZ = self.readFromFile("f", 1)[0]
 
                 ## bone rotiation
-                boneRotationW = self.readFromFile("f", 1)[0]
                 boneRotationX = self.readFromFile("f", 1)[0]
                 boneRotationY = self.readFromFile("f", 1)[0]
                 boneRotationZ = self.readFromFile("f", 1)[0]
+                boneRotationW = self.readFromFile("f", 1)[0]
 
                 ## bone original position
                 boneOriginalPositionX = self.readFromFile("f", 1)[0]
@@ -127,10 +140,10 @@ class B3DFile(BinaryFile):
                 boneOriginalPositionZ = self.readFromFile("f", 1)[0]
 
                 ## bone original rotiation
-                boneOriginalRotationW = self.readFromFile("f", 1)[0]
                 boneOriginalRotationX = self.readFromFile("f", 1)[0]
                 boneOriginalRotationY = self.readFromFile("f", 1)[0]
                 boneOriginalRotationZ = self.readFromFile("f", 1)[0]
+                boneOriginalRotationW = self.readFromFile("f", 1)[0]
 
                 boneMaxAngles = self.readFromFile("f", 6)
 
@@ -139,8 +152,9 @@ class B3DFile(BinaryFile):
 
                 boneParentId = self.readFromFile("i", 1)[0]
 
-                self.editBonePosition(rig, 'tail', boneName, (boneOriginalPositionX + 0.001, boneOriginalPositionZ, boneOriginalPositionY))
                 self.editBonePosition(rig, 'head', boneName, (boneOriginalPositionX, boneOriginalPositionZ, boneOriginalPositionY))
+                self.editBonePosition(rig, 'tail', boneName, (boneOriginalPositionX, boneOriginalPositionZ + boneLength, boneOriginalPositionY))
+                self.editBoneRotation(rig, boneName, (boneOriginalRotationW, boneOriginalRotationX, boneOriginalRotationZ, boneOriginalRotationY))
 
                 if boneParentId != -1:
                     parent = rig.data.bones[bones[boneParentId]]
