@@ -163,10 +163,10 @@ class S3DFile(BinaryFile):
             objectPositionY = self.readFromFile("f", 1)[0]
 
             ## object rotation
-            objectRotationW = self.readFromFile("f", 1)[0]
             objectRotationX = self.readFromFile("f", 1)[0]
             objectRotationY = self.readFromFile("f", 1)[0]
             objectRotationZ = self.readFromFile("f", 1)[0]
+            objectRotationW = self.readFromFile("f", 1)[0]
 
             ## object scale
             objectScaleX = self.readFromFile("f", 1)[0]
@@ -202,7 +202,8 @@ class S3DFile(BinaryFile):
             obj.location = (objectPositionX, objectPositionY, objectPositionZ)
 
             ## Set the object rotation
-            obj.rotation_quaternion = (objectRotationX, objectRotationY, objectRotationZ, objectRotationW)
+            obj.rotation_mode = 'QUATERNION'
+            obj.rotation_quaternion = (objectRotationW, objectRotationX, objectRotationY, objectRotationZ)
 
             vertex = []
             faces = []
