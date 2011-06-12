@@ -198,6 +198,12 @@ class S3DFile(BinaryFile):
             ## Add this object to the Blender scene
             base = bpy.context.scene.objects.link(obj)
 
+            if ":" in objectName:
+                objectType = objectName.split(":")[1]
+                if objectType == "Collision":
+                    ## draw collision mesh objects as wireframes
+                    obj.draw_type = 'WIRE'
+
             ## Set the object location
             obj.location = (objectPositionX, objectPositionY, objectPositionZ)
 
