@@ -27,6 +27,19 @@ from .BinaryFile import BinaryFile
 
 class S3DFile(BinaryFile):
 
+    def loadImage(self, tex, textures, imageId):
+        imageName = textures[imageId]
+
+        try:
+            image = bpy.data.images.load(self.getDirectory() + imageName)
+        except:
+            print("Could not load image id: " + str(imageName))
+            return False
+
+        print("Image loaded from: " + str(image.filepath))
+        tex.image = image
+        return True
+
     def open(self, path, switchGLSL, removeDoubles):
 
         ####################
@@ -120,20 +133,13 @@ class S3DFile(BinaryFile):
             mat.specular_color[1] = materialSpecular[1]
             mat.specular_color[2] = materialSpecular[2]
 
-            tex = bpy.data.textures.new(materialName, type = 'IMAGE')
-            texSlot = mat.texture_slots.add()
-            texSlot.texture = tex
-            texSlot.texture_coords = 'UV'
-
             if materialTextureBase != -1:
-                try:
-                    image = bpy.data.images.load(self.getDirectory() + textures[materialTextureBase])
-                    tex.image = image
-                    print("Image loaded from: " + textures[materialTextureBase])
-                    imageLoaded = True
-                except:
-                    print("Could not load image id: " + str(materialTextureBase))
-                    imageLoaded = False
+                tex = bpy.data.textures.new("diffuse", type = 'IMAGE')
+                texSlot = mat.texture_slots.add()
+                texSlot.texture = tex
+                texSlot.texture_coords = 'UV'
+
+                imageLoaded = self.loadImage(tex, textures, materialTextureBase)
             else:
                 imageLoaded = False
 
@@ -144,6 +150,16 @@ class S3DFile(BinaryFile):
 
                 ## set the texture to use the alpha as transparency
                 texSlot.use_map_alpha = True
+
+            if materialTextureReflection != -1:
+                tex = bpy.data.textures.new("reflection", type = 'IMAGE')
+                texSlot = mat.texture_slots.add()
+                texSlot.texture = tex
+                texSlot.use_map_color_diffuse = False
+                texSlot.use_map_color_spec = True
+                texSlot.texture_coords = 'REFLECTION'
+
+                self.loadImage(tex, textures, materialTextureReflection)
 
             ## append material name to the materials list
             materials.append(mat)
