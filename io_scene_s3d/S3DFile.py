@@ -30,15 +30,38 @@ class S3DFile(BinaryFile):
     def loadImage(self, tex, textures, imageId):
         imageName = textures[imageId]
 
+        # XXX: This use of try/except is messy.
+
+        ## try the same directory as the s3d file
         try:
             image = bpy.data.images.load(self.getDirectory() + imageName)
+            imageFound = True
         except:
+            imageFound = False
+
+        if imageFound is False:
+            ## try the Data/Textures directory based on the user defined Jack Claw Data variable
+            try:
+                image = bpy.data.images.load(bpy.context.window_manager.jcdata + "Textures" + self.getFileSystemSlash() + imageName)
+                imageFound = True
+            except:
+                pass
+
+        if imageFound is False:
+            ## try the Data/Textures/Cubemaps directory based on the user defined Jack Claw Data variable
+            try:
+                image = bpy.data.images.load(bpy.context.window_manager.jcdata + "Textures" + self.getFileSystemSlash() + "Cubemaps" + self.getFileSystemSlash() + imageName)
+                imageFound = True
+            except:
+                pass
+
+        if imageFound is True:
+            print("Image loaded from: " + str(image.filepath))
+            tex.image = image
+            return True
+        else:
             print("Could not load image id: " + str(imageName))
             return False
-
-        print("Image loaded from: " + str(image.filepath))
-        tex.image = image
-        return True
 
     def open(self, path, switchGLSL, removeDoubles):
 
