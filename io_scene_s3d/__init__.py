@@ -76,6 +76,25 @@ class ExportS3D(bpy.types.Operator, ExportHelper):
         s3d.write(self.filepath)
         return {'FINISHED'}
 
+class UserPref(bpy.types.Panel):
+    bl_idname = "OBJECT_PT_storm_3d"
+    bl_label = "Storm3D Settings"
+    bl_space_type = 'USER_PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+
+    bpy.types.WindowManager.jcdata = StringProperty(name = 'Jack Claw Data Directory', subtype = 'DIR_PATH')
+
+    @classmethod
+    def poll(cls, context):
+        atFilesSection = context.user_preferences.active_section == 'FILES'
+        return atFilesSection
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(context.window_manager, 'jcdata')
+        layout.label('WARNING: Currently this does not save when Blender exits.')
+
 def menu_func_import(self, context):
     self.layout.operator(ImportS3D.bl_idname, text="Storm3D S3D (.s3d)")
 
