@@ -87,7 +87,7 @@ def getFileSystemSlash():
         slash = "\\"
     return slash
 
-def getAddonPath():
+def getSettingsFilePath():
     addonDir = os.path.abspath(__file__)
     slash = getFileSystemSlash()
     addonPath = slash.join(addonDir.split(slash)[0:-1])
@@ -103,10 +103,12 @@ class UserPref(bpy.types.Panel):
 
     bpy.types.WindowManager.jcdata = StringProperty(name = 'Jack Claw Data Directory', subtype = 'DIR_PATH')
 
-    settingsFile = open(getAddonPath(), 'rb')
-    settings = pickle.load(settingsFile)
-    bpy.context.window_manager.jcdata = settings['jcdata']
-    settingsFile.close()
+    settingsPath = getSettingsFilePath()
+    if os.path.exists(settingsPath):
+        settingsFile = open(settingsPath, 'rb')
+        settings = pickle.load(settingsFile)
+        bpy.context.window_manager.jcdata = settings['jcdata']
+        settingsFile.close()
 
     @classmethod
     def poll(cls, context):
@@ -124,7 +126,7 @@ class UserPrefSaveButton(bpy.types.Operator):
     bl_label = 'Button'
 
     def execute(self, context):
-        settingsFile = open(getAddonPath(), 'wb')
+        settingsFile = open(getSettingsFilePath(), 'wb')
         settings = {'jcdata': bpy.context.window_manager.jcdata}
         pickle.dump(settings, settingsFile)
         settingsFile.close()
