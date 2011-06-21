@@ -35,6 +35,8 @@ bl_info = {
     "category": "Import-Export"}
 
 import bpy
+import os
+import pickle
 from .S3DFile import S3DFile
 from .B3DFile import B3DFile
 from bpy.props import StringProperty, BoolProperty
@@ -76,6 +78,12 @@ class ExportS3D(bpy.types.Operator, ExportHelper):
         s3d.write(self.filepath)
         return {'FINISHED'}
 
+def getAddonPath():
+    addonDir = os.path.abspath(__file__)
+    addonPath = "/".join(addonDir.split("/")[0:-1])
+    addonPath = addonPath + '/' + 'settings.pkl'
+    return addonPath
+
 class UserPref(bpy.types.Panel):
     bl_idname = "OBJECT_PT_storm_3d"
     bl_label = "Storm3D Settings"
@@ -85,6 +93,11 @@ class UserPref(bpy.types.Panel):
 
     bpy.types.WindowManager.jcdata = StringProperty(name = 'Jack Claw Data Directory', subtype = 'DIR_PATH')
 
+    settingsFile = open(getAddonPath(), 'rb')
+    settings = pickle.load(settingsFile)
+    bpy.context.window_manager.jcdata = settings['jcdata']
+    settingsFile.close()
+
     @classmethod
     def poll(cls, context):
         atFilesSection = context.user_preferences.active_section == 'FILES'
@@ -93,7 +106,20 @@ class UserPref(bpy.types.Panel):
     def draw(self, context):
         layout = self.layout
         layout.prop(context.window_manager, 'jcdata')
-        layout.label('WARNING: Currently this does not save when Blender exits.')
+        row = layout.row()
+        row.operator('jcdata.save', text = 'Save Settings')
+
+class UserPrefSaveButton(bpy.types.Operator):
+    bl_idname = 'jcdata.save'
+    bl_label = 'Button'
+
+    def execute(self, context):
+        settingsFile = open(getAddonPath(), 'wb')
+        settings = {'jcdata': bpy.context.window_manager.jcdata}
+        pickle.dump(settings, settingsFile)
+        settingsFile.close()
+
+        return {'FINISHED'}
 
 def menu_func_import(self, context):
     self.layout.operator(ImportS3D.bl_idname, text="Storm3D S3D (.s3d)")
