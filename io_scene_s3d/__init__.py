@@ -78,10 +78,20 @@ class ExportS3D(bpy.types.Operator, ExportHelper):
         s3d.write(self.filepath)
         return {'FINISHED'}
 
+def getFileSystemSlash():
+    if os.name == "posix":
+        ## POSIX, use forward slash
+        slash = "/"
+    else:
+        ## Probably Windows, use backslash
+        slash = "\\"
+    return slash
+
 def getAddonPath():
     addonDir = os.path.abspath(__file__)
-    addonPath = "/".join(addonDir.split("/")[0:-1])
-    addonPath = addonPath + '/' + 'settings.pkl'
+    slash = getFileSystemSlash()
+    addonPath = slash.join(addonDir.split(slash)[0:-1])
+    addonPath = addonPath + slash + 'settings.pkl'
     return addonPath
 
 class UserPref(bpy.types.Panel):
