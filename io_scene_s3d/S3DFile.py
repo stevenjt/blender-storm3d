@@ -586,8 +586,8 @@ class S3DFile(BinaryFile):
 
             ## object rotation
             self.writeToFile("f", o.rotation_quaternion[1])
-            self.writeToFile("f", o.rotation_quaternion[2])
             self.writeToFile("f", o.rotation_quaternion[3])
+            self.writeToFile("f", o.rotation_quaternion[2])
             self.writeToFile("f", o.rotation_quaternion[0])
 
             ## object scale
