@@ -246,6 +246,9 @@ class S3DFile(BinaryFile):
             ## Set the object location
             obj.location = (objectPositionX, objectPositionY, objectPositionZ)
 
+            ## Set the object scale
+            obj.scale = (objectScaleX, objectScaleY, objectScaleZ)
+
             ## Set the object rotation
             obj.rotation_mode = 'QUATERNION'
             obj.rotation_quaternion = (objectRotationW, objectRotationX, objectRotationY, objectRotationZ)
@@ -590,8 +593,8 @@ class S3DFile(BinaryFile):
             ## object scale
             self.writeToFile("f", o.scale[0])
             ## Y and Z need to be swapped.
-            self.writeToFile("f", o.scale[1])
             self.writeToFile("f", o.scale[2])
+            self.writeToFile("f", o.scale[1])
 
             ## objectNoCollision
             self.writeToFile("B", 0)
