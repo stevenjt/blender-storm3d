@@ -333,7 +333,7 @@ class S3DFile(BinaryFile):
             ## Set all the 3d viewports to textured
             for a in bpy.context.screen.areas:
                 if a.type == 'VIEW_3D':
-                    a.active_space.viewport_shade = 'TEXTURED'
+                    a.spaces.active.viewport_shade = 'TEXTURED'
 
             ## Set the material in Blender
             mesh.materials.append(materials[materialIndex])
@@ -555,7 +555,7 @@ class S3DFile(BinaryFile):
             bpy.ops.mesh.quads_convert_to_tris()
             bpy.ops.mesh.flip_normals()
             bpy.ops.object.mode_set(mode = 'OBJECT')
-            bpy.ops.object.rotation_apply()
+            bpy.ops.object.transform_apply(rotation = True)
 
             ## Convert UV seams to edge sharps
             for e in o.data.edges:

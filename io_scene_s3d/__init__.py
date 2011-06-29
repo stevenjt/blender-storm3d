@@ -26,7 +26,7 @@ bl_info = {
     "name": "Storm3D S3D",
     "author": "Steven J Thompson",
     "version": (0, 2),
-    "blender": (2, 5, 7),
+    "blender": (2, 5, 8),
     "api": 36079,
     "location": "File > Import-Export ",
     "description": "Import and Export S3D files which are used in the Frozenbyte Storm3D engine",
@@ -40,7 +40,7 @@ import pickle
 from .S3DFile import S3DFile
 from .B3DFile import B3DFile
 from bpy.props import StringProperty, BoolProperty
-from io_utils import ImportHelper, ExportHelper
+from bpy_extras.io_utils import ImportHelper, ExportHelper
 
 class ImportS3D(bpy.types.Operator, ImportHelper):
     bl_idname = "import.s3d"
