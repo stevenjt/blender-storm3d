@@ -25,7 +25,7 @@
 bl_info = {
     "name": "Storm3D S3D",
     "author": "Steven J Thompson",
-    "version": (0, 2),
+    "version": (0, 3),
     "blender": (2, 5, 8),
     "api": 36079,
     "location": "File > Import-Export ",
